@@ -1,14 +1,22 @@
 from typing import Optional
+import os
 
 class Settings:
     """Simple settings class without Pydantic"""
     # Database
-    database_url: str = "sqlite:///./vendorr.db"
+    database_url: str = os.getenv("DATABASE_URL", "sqlite:///./vendorr.db")
+
+    # Fix for Railway/Render PostgreSQL URL (they use postgres:// but SQLAlchemy needs postgresql://)
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
 
     # Security
-    secret_key: str = "your-secret-key-here-change-in-production"
+    secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
+
+    # CORS - Allow frontend origins
+    allowed_origins: list = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
 
     # Redis
     redis_url: str = "redis://localhost:6379"
@@ -30,7 +38,8 @@ class Settings:
     bank_account_name: str = "Vendorr Restaurant LLC"
 
     # Environment
-    debug: bool = True
-    environment: str = "development"
+    debug: bool = os.getenv("DEBUG", "True").lower() == "true"
+    environment: str = os.getenv("ENVIRONMENT", "development")
+    port: int = int(os.getenv("PORT", "8000"))
 
 settings = Settings()

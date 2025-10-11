@@ -115,14 +115,11 @@ app.openapi = custom_openapi
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key-change-in-production")
 
 # CORS middleware for frontend communication
+from .core.config import settings
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://vendorr.com",
-        "https://www.vendorr.com"
-    ],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

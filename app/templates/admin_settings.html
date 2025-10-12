@@ -1,0 +1,114 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    {% if request.query_params.get('success') %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        Settings saved successfully!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/admin/settings">
+        <!-- WhatsApp Settings Card -->
+        <div class="stat-card mb-4">
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-success bg-opacity-10 p-3 rounded me-3">
+                    <i class="fab fa-whatsapp fa-2x text-success"></i>
+                </div>
+                <div>
+                    <h4 class="mb-1">WhatsApp Support</h4>
+                    <p class="text-muted mb-0">Configure the floating WhatsApp button</p>
+                </div>
+            </div>
+
+            <!-- Enable/Disable Toggle -->
+            <div class="form-check form-switch mb-4">
+                <input class="form-check-input" type="checkbox" id="whatsappEnabled"
+                       name="whatsapp_enabled" value="true" {% if settings.whatsapp_enabled %}checked{% endif %}>
+                <label class="form-check-label" for="whatsappEnabled">
+                    <strong>Enable WhatsApp Button</strong>
+                    <p class="text-muted small mb-0">Show floating WhatsApp button on all pages</p>
+                </label>
+            </div>
+
+            <!-- WhatsApp Link -->
+            <div class="mb-4">
+                <label for="whatsappLink" class="form-label">WhatsApp Link *</label>
+                <input type="url" class="form-control" id="whatsappLink"
+                       name="whatsapp_link" value="{{ settings.whatsapp_link }}"
+                       required placeholder="https://wa.me/qr/EKAYKJ7XOVOTP1">
+                <div class="form-text">Enter your WhatsApp chat link or QR code link</div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="alert alert-info">
+                <h6 class="alert-heading"><i class="fas fa-info-circle"></i> How to get your WhatsApp link:</h6>
+                <ol class="mb-2">
+                    <li>Open WhatsApp Business on your phone</li>
+                    <li>Go to Settings → Business Tools → Short Link</li>
+                    <li>Create or copy your business link</li>
+                    <li>Paste it in the field above</li>
+                </ol>
+                <p class="mb-0">Or use format: <code>https://wa.me/2349064554795</code></p>
+            </div>
+        </div>
+
+        <!-- Restaurant Information Card -->
+        <div class="stat-card mb-4">
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                    <i class="fas fa-store fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h4 class="mb-1">Restaurant Information</h4>
+                    <p class="text-muted mb-0">Update your business contact details</p>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <!-- Restaurant Name -->
+                <div class="col-md-6">
+                    <label for="restaurantName" class="form-label">Restaurant Name *</label>
+                    <input type="text" class="form-control" id="restaurantName"
+                           name="restaurant_name" value="{{ settings.restaurant_name }}" required>
+                </div>
+
+                <!-- Phone -->
+                <div class="col-md-6">
+                    <label for="restaurantPhone" class="form-label">Phone Number *</label>
+                    <input type="text" class="form-control" id="restaurantPhone"
+                           name="restaurant_phone" value="{{ settings.restaurant_phone }}"
+                           required placeholder="+234 906 455 4795">
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <label for="restaurantEmail" class="form-label">Email Address *</label>
+                    <input type="email" class="form-control" id="restaurantEmail"
+                           name="restaurant_email" value="{{ settings.restaurant_email }}"
+                           required placeholder="vendorr1@gmail.com">
+                </div>
+
+                <!-- Location -->
+                <div class="col-md-12">
+                    <label for="restaurantAddress" class="form-label">Location *</label>
+                    <textarea class="form-control" id="restaurantAddress"
+                              name="restaurant_address" rows="3" required>{{ settings.restaurant_address }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="d-flex justify-content-end gap-2">
+            <a href="/admin" class="btn btn-outline-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

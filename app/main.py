@@ -250,6 +250,10 @@ app.include_router(menu.router, prefix="/api/menu", tags=["Menu"])
 app.include_router(orders.router, prefix="/api/orders", tags=["Orders"])
 app.include_router(websocket.router, tags=["WebSocket Notifications"])
 
+# Import and include settings router
+from .routers import settings
+app.include_router(settings.router, tags=["Settings"])
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -218,3 +218,18 @@ class BankTransfer(Base):
     is_confirmed = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+# App Settings Model
+class AppSettings(Base):
+    __tablename__ = "app_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    whatsapp_link = Column(String(500), default="https://wa.me/qr/EKAYKJ7XOVOTP1")
+    whatsapp_enabled = Column(Boolean, default=True)
+    restaurant_name = Column(String(200), default="Vendorr")
+    restaurant_phone = Column(String(50), default="+234 906 455 4795")
+    restaurant_email = Column(String(200), default="vendorr1@gmail.com")
+    restaurant_address = Column(Text, default="Red Brick, Faculty of Arts, University of Jos")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

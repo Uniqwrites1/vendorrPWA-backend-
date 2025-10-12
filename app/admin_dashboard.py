@@ -186,6 +186,61 @@ async def admin_users(request: Request, db: Session = Depends(get_db), admin_use
         "admin_user": admin_user
     })
 
+@admin_router.get("/settings", response_class=HTMLResponse)
+async def admin_settings(request: Request, db: Session = Depends(get_db), admin_user=Depends(get_current_admin_user)):
+    """Settings - Configure WhatsApp and app settings"""
+    from app.models.database_models import AppSettings
+
+    # Get or create settings
+    settings = db.query(AppSettings).first()
+    if not settings:
+        settings = AppSettings()
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+
+    return templates.TemplateResponse("admin_settings.html", {
+        "request": request,
+        "settings": settings,
+        "page_title": "Settings",
+        "admin_user": admin_user
+    })
+
+@admin_router.post("/settings")
+async def admin_settings_update(
+    request: Request,
+    whatsapp_link: str = Form(...),
+    whatsapp_enabled: bool = Form(False),
+    restaurant_name: str = Form(...),
+    restaurant_phone: str = Form(...),
+    restaurant_email: str = Form(...),
+    restaurant_address: str = Form(...),
+    db: Session = Depends(get_db),
+    admin_user=Depends(get_current_admin_user)
+):
+    """Update Settings"""
+    from app.models.database_models import AppSettings
+
+    # Get or create settings
+    settings = db.query(AppSettings).first()
+    if not settings:
+        settings = AppSettings()
+        db.add(settings)
+
+    # Update settings
+    settings.whatsapp_link = whatsapp_link
+    settings.whatsapp_enabled = whatsapp_enabled
+    settings.restaurant_name = restaurant_name
+    settings.restaurant_phone = restaurant_phone
+    settings.restaurant_email = restaurant_email
+    settings.restaurant_address = restaurant_address
+    settings.updated_at = datetime.utcnow()
+
+    db.commit()
+
+    # Redirect back to settings with success message
+    return RedirectResponse(url="/admin/settings?success=true", status_code=303)
+
 @admin_router.get("/login", response_class=HTMLResponse)
 async def admin_login_page(request: Request):
     """Admin Login Page"""

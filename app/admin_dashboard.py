@@ -197,15 +197,16 @@ async def admin_login_page(request: Request):
 @admin_router.post("/login")
 async def admin_login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     """Handle admin login"""
-    from passlib.context import CryptContext
-
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    from app.auth.auth import AuthService
 
     # Find user by email (username field is used for email)
     user = db.query(User).filter(User.email == username).first()
 
     # Check if user exists, is admin, and password is correct
-    if user and user.role == "admin" and user.hashed_password and pwd_context.verify(password, user.hashed_password):
+    if (user and
+        user.role == UserRole.ADMIN.value and
+        user.hashed_password and
+        AuthService.verify_password(password, user.hashed_password)):
         request.session["admin_logged_in"] = True
         request.session["admin_username"] = user.email
         request.session["admin_user_id"] = user.id

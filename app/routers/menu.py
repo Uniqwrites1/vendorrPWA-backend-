@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from ..core.database import get_db
-from ..models import MenuCategory, MenuItem, MenuItemStatus
+from ..models.database_models import MenuCategory, MenuItem
 from ..schemas import MenuCategoryResponse, MenuItemResponse
 import json
 

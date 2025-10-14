@@ -5,7 +5,8 @@ from datetime import datetime
 import json
 
 from ..core.database import get_db
-from ..models import Order, OrderItem, MenuItem, User
+from ..models import Order, OrderItem, User
+from ..models.database_models import MenuItem
 from ..schemas import OrderCreate, OrderResponse, OrderUpdate
 from ..auth.auth import get_current_active_user
 

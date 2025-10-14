@@ -503,6 +503,7 @@ async def create_menu_item(
             price=float(data.get("price")),
             category_id=category.id,
             is_available=data.get("available", True),
+            status="available",  # Set status for API compatibility
             image_url=data.get("image_url"),
             preparation_time=data.get("preparation_time", 15)
         )
@@ -541,10 +542,16 @@ async def update_menu_item(
             menu_item.price = float(data["price"])
         if "available" in data:
             menu_item.is_available = data["available"]
+            # Update status based on availability
+            menu_item.status = "available" if data["available"] else "unavailable"
         if "image_url" in data:
             menu_item.image_url = data["image_url"]
         if "preparation_time" in data:
             menu_item.preparation_time = data["preparation_time"]
+
+        # Ensure status is set for API compatibility
+        if menu_item.status is None:
+            menu_item.status = "available" if menu_item.is_available else "unavailable"
 
         menu_item.updated_at = datetime.utcnow()
         db.commit()

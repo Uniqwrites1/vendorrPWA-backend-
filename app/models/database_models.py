@@ -96,7 +96,7 @@ class MenuItem(Base):
     dietary_tags = Column(Text)  # JSON string
     is_available = Column(Boolean, default=True)
     is_featured = Column(Boolean, default=False)
-    status = Column(String(12))
+    status = Column(String(12), default='available')
     preparation_time = Column(Integer, default=15)  # minutes
     spice_level = Column(Integer)
     customizable = Column(Boolean, default=False)

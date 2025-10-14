@@ -88,7 +88,7 @@ async def get_menu_items(
     query = (
         db.query(MenuItem)
         .options(joinedload(MenuItem.category))
-        .filter(MenuItem.status == MenuItemStatus.AVAILABLE)
+        .filter(MenuItem.status == "available")  # Use string comparison instead of enum
         .order_by(MenuItem.name)
     )
 
@@ -118,7 +118,7 @@ async def get_featured_items(db: Session = Depends(get_db)):
     items = (
         db.query(MenuItem)
         .filter(MenuItem.is_daily_special == True)
-        .filter(MenuItem.status == MenuItemStatus.AVAILABLE)
+        .filter(MenuItem.status == "available")  # Use string comparison
         .order_by(MenuItem.popularity_score.desc())
         .limit(10)
         .all()
@@ -130,7 +130,7 @@ async def get_popular_items(limit: int = 10, db: Session = Depends(get_db)):
     """Get popular menu items"""
     items = (
         db.query(MenuItem)
-        .filter(MenuItem.status == MenuItemStatus.AVAILABLE)
+        .filter(MenuItem.status == "available")  # Use string comparison
         .order_by(MenuItem.popularity_score.desc(), MenuItem.total_orders.desc())
         .limit(limit)
         .all()

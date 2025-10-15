@@ -280,6 +280,58 @@ async def admin_logout(request: Request):
     return RedirectResponse(url="/admin/login", status_code=303)
 
 # API endpoints for admin operations
+@admin_router.get("/api/orders/{order_id}")
+async def get_order_details(
+    order_id: int,
+    db: Session = Depends(get_db),
+    admin_user=Depends(get_current_admin_user)
+):
+    """Get detailed order information"""
+    try:
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+
+        # Get customer info
+        customer = db.query(User).filter(User.id == order.customer_id).first()
+
+        # Get order items with menu item details
+        order_items = db.query(OrderItem).filter(OrderItem.order_id == order_id).all()
+        items_list = []
+        for item in order_items:
+            menu_item = db.query(MenuItem).filter(MenuItem.id == item.menu_item_id).first()
+            items_list.append({
+                "id": item.id,
+                "name": menu_item.name if menu_item else "Unknown Item",
+                "quantity": item.quantity,
+                "unit_price": float(item.unit_price),
+                "subtotal": float(item.subtotal),
+                "special_instructions": item.special_instructions
+            })
+
+        return {
+            "id": order.id,
+            "order_number": order.order_number,
+            "customer_name": customer.full_name if customer else "Unknown",
+            "customer_email": customer.email if customer else "",
+            "customer_phone": customer.phone if customer else "",
+            "status": order.status,
+            "payment_status": order.payment_status,
+            "payment_method": order.payment_method,
+            "subtotal": float(order.subtotal),
+            "tax": float(order.tax) if order.tax else 0,
+            "delivery_fee": float(order.delivery_fee) if order.delivery_fee else 0,
+            "total": float(order.total),
+            "special_instructions": order.special_instructions,
+            "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "items": items_list
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @admin_router.post("/api/orders/{order_id}/update-status")
 async def update_order_status(
     order_id: int,

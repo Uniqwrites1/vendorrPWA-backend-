@@ -246,36 +246,230 @@ function viewPaymentProof(orderId) {
 }
 
 function viewOrderDetails(orderId) {
-    // In production, fetch real order details
-    const orderDetails = `
-        <div class="row">
-            <div class="col-md-6">
-                <h6>Order Information</h6>
-                <p><strong>Order ID:</strong> #${orderId}</p>
-                <p><strong>Customer:</strong> John Doe</p>
-                <p><strong>Phone:</strong> +1 234 567 8900</p>
-                <p><strong>Status:</strong> <span class="badge bg-warning">Preparing</span></p>
-            </div>
-            <div class="col-md-6">
-                <h6>Order Items</h6>
-                <ul class="list-unstyled">
-                    <li>1x Classic Burger - $12.99</li>
-                    <li>1x French Fries - $4.99</li>
-                    <li>1x Coca Cola - $2.99</li>
-                </ul>
-                <hr>
-                <p><strong>Total: $20.97</strong></p>
-            </div>
-        </div>
-    `;
+    // Fetch real order details
+    fetch(`/admin/api/orders/${orderId}`)
+        .then(response => response.json())
+        .then(order => {
+            const statusBadge = getStatusBadge(order.status);
+            const paymentBadge = getPaymentBadge(order.payment_status);
 
-    document.getElementById('orderDetailsContent').innerHTML = orderDetails;
-    new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
+            const orderDetails = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Order Information</h6>
+                        <p><strong>Order Number:</strong> ${order.order_number}</p>
+                        <p><strong>Customer:</strong> ${order.customer_name}</p>
+                        <p><strong>Email:</strong> ${order.customer_email}</p>
+                        <p><strong>Phone:</strong> ${order.customer_phone || 'N/A'}</p>
+                        <p><strong>Status:</strong> ${statusBadge}</p>
+                        <p><strong>Payment:</strong> ${paymentBadge}</p>
+                        <p><strong>Payment Method:</strong> ${order.payment_method || 'N/A'}</p>
+                        <p><strong>Order Time:</strong> ${order.created_at}</p>
+                        ${order.special_instructions ? `<p><strong>Special Instructions:</strong><br>${order.special_instructions}</p>` : ''}
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Order Items</h6>
+                        <ul class="list-unstyled">
+                            ${order.items.map(item => `
+                                <li class="mb-2">
+                                    ${item.quantity}x ${item.name} - ₦${item.unit_price.toFixed(2)}
+                                    ${item.special_instructions ? `<br><small class="text-muted">Note: ${item.special_instructions}</small>` : ''}
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <hr>
+                        <p><strong>Subtotal:</strong> ₦${order.subtotal.toFixed(2)}</p>
+                        ${order.tax > 0 ? `<p><strong>Tax:</strong> ₦${order.tax.toFixed(2)}</p>` : ''}
+                        ${order.delivery_fee > 0 ? `<p><strong>Delivery Fee:</strong> ₦${order.delivery_fee.toFixed(2)}</p>` : ''}
+                        <h5><strong>Total: ₦${order.total.toFixed(2)}</strong></h5>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('orderDetailsContent').innerHTML = orderDetails;
+            new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error loading order details', 'danger');
+        });
+}
+
+function getStatusBadge(status) {
+    const badges = {
+        'pending_payment': '<span class="badge bg-warning">Pending Payment</span>',
+        'payment_confirmed': '<span class="badge bg-info">Payment Confirmed</span>',
+        'preparing': '<span class="badge bg-primary">Preparing</span>',
+        'almost_ready': '<span class="badge bg-info">Almost Ready</span>',
+        'ready_for_pickup': '<span class="badge bg-success">Ready for Pickup</span>',
+        'delivered': '<span class="badge bg-success">Delivered</span>',
+        'completed': '<span class="badge bg-success">Completed</span>',
+        'cancelled': '<span class="badge bg-danger">Cancelled</span>'
+    };
+    return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
+}
+
+function getPaymentBadge(status) {
+    const badges = {
+        'pending': '<span class="badge bg-warning">Pending</span>',
+        'completed': '<span class="badge bg-success">Completed</span>',
+        'failed': '<span class="badge bg-danger">Failed</span>',
+        'refunded': '<span class="badge bg-info">Refunded</span>'
+    };
+    return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
 }
 
 function printOrder(orderId) {
-    // In production, generate and print order receipt
-    window.print();
+    // Fetch order details and generate print receipt
+    fetch(`/admin/api/orders/${orderId}`)
+        .then(response => response.json())
+        .then(order => {
+            const printWindow = window.open('', '_blank');
+            const receipt = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Order Receipt #${order.order_number}</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            max-width: 800px;
+                            margin: 0 auto;
+                        }
+                        .header {
+                            text-align: center;
+                            border-bottom: 2px solid #333;
+                            padding-bottom: 20px;
+                            margin-bottom: 20px;
+                        }
+                        .header h1 {
+                            margin: 0;
+                            color: #333;
+                        }
+                        .order-info {
+                            margin-bottom: 30px;
+                        }
+                        .order-info p {
+                            margin: 5px 0;
+                            line-height: 1.6;
+                        }
+                        .items-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 20px;
+                        }
+                        .items-table th,
+                        .items-table td {
+                            padding: 10px;
+                            text-align: left;
+                            border-bottom: 1px solid #ddd;
+                        }
+                        .items-table th {
+                            background-color: #f5f5f5;
+                            font-weight: bold;
+                        }
+                        .totals {
+                            text-align: right;
+                            margin-top: 20px;
+                        }
+                        .totals p {
+                            margin: 5px 0;
+                        }
+                        .total-final {
+                            font-size: 1.2em;
+                            font-weight: bold;
+                            border-top: 2px solid #333;
+                            padding-top: 10px;
+                            margin-top: 10px;
+                        }
+                        .footer {
+                            text-align: center;
+                            margin-top: 30px;
+                            padding-top: 20px;
+                            border-top: 1px solid #ddd;
+                            color: #666;
+                        }
+                        @media print {
+                            body {
+                                padding: 0;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Vendorr Restaurant</h1>
+                        <p>Order Receipt</p>
+                    </div>
+
+                    <div class="order-info">
+                        <p><strong>Order Number:</strong> ${order.order_number}</p>
+                        <p><strong>Date:</strong> ${order.created_at}</p>
+                        <p><strong>Customer:</strong> ${order.customer_name}</p>
+                        <p><strong>Phone:</strong> ${order.customer_phone || 'N/A'}</p>
+                        <p><strong>Email:</strong> ${order.customer_email}</p>
+                        <p><strong>Status:</strong> ${order.status.replace(/_/g, ' ').toUpperCase()}</p>
+                        <p><strong>Payment Status:</strong> ${order.payment_status.toUpperCase()}</p>
+                        <p><strong>Payment Method:</strong> ${order.payment_method || 'N/A'}</p>
+                        ${order.special_instructions ? `<p><strong>Special Instructions:</strong> ${order.special_instructions}</p>` : ''}
+                    </div>
+
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th style="text-align: center;">Qty</th>
+                                <th style="text-align: right;">Unit Price</th>
+                                <th style="text-align: right;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${order.items.map(item => `
+                                <tr>
+                                    <td>
+                                        ${item.name}
+                                        ${item.special_instructions ? `<br><small style="color: #666;">Note: ${item.special_instructions}</small>` : ''}
+                                    </td>
+                                    <td style="text-align: center;">${item.quantity}</td>
+                                    <td style="text-align: right;">₦${item.unit_price.toFixed(2)}</td>
+                                    <td style="text-align: right;">₦${item.subtotal.toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <div class="totals">
+                        <p><strong>Subtotal:</strong> ₦${order.subtotal.toFixed(2)}</p>
+                        ${order.tax > 0 ? `<p><strong>Tax:</strong> ₦${order.tax.toFixed(2)}</p>` : ''}
+                        ${order.delivery_fee > 0 ? `<p><strong>Delivery Fee:</strong> ₦${order.delivery_fee.toFixed(2)}</p>` : ''}
+                        <p class="total-final"><strong>TOTAL:</strong> ₦${order.total.toFixed(2)}</p>
+                    </div>
+
+                    <div class="footer">
+                        <p>Thank you for your order!</p>
+                        <p>For any inquiries, please contact us.</p>
+                    </div>
+
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.onafterprint = function() {
+                                window.close();
+                            };
+                        };
+                    </script>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.write(receipt);
+            printWindow.document.close();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error loading order for printing', 'danger');
+        });
 }
 
 function refreshOrders() {

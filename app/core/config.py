@@ -16,7 +16,7 @@ class Settings:
     access_token_expire_minutes: int = 30
 
     # CORS - Allow frontend origins
-    allowed_origins: list = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
+    allowed_origins: list = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")]
 
     # Redis
     redis_url: str = "redis://localhost:6379"

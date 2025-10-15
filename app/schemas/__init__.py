@@ -41,8 +41,8 @@ class BaseSchema(BaseModel):
 class UserBase(BaseSchema):
     email: EmailStr
     phone: Optional[str] = None
-    first_name: str = Field(..., min_length=1, max_length=100)
-    last_name: str = Field(..., min_length=1, max_length=100)
+    first_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    last_name: Optional[str] = Field(None, min_length=1, max_length=100)
     role: UserRole = UserRole.CUSTOMER
 
 class UserCreate(UserBase):

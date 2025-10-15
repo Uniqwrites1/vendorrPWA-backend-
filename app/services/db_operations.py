@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import json
 
 from ..core.database import get_db
-from ..models import User, Order, MenuItem, MenuCategory, OrderItem, Notification
+from ..models.database_models import User, Order, MenuItem, MenuCategory, OrderItem, Notification
 from ..schemas import *
 
 

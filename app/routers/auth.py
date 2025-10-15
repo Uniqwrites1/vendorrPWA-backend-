@@ -15,8 +15,7 @@ from ..schemas import (
     UserCreate, UserResponse, UserLogin, Token, OAuthRequest,
     APIResponse, ErrorResponse
 )
-from ..models import User
-from ..models.database_models import UserRole
+from ..models.database_models import User, UserRole
 
 logger = logging.getLogger(__name__)
 

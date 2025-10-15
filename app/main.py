@@ -111,6 +111,29 @@ app = FastAPI(
 # Set custom OpenAPI schema
 app.openapi = custom_openapi
 
+# Startup event to test database connection
+@app.on_event("startup")
+async def startup_event():
+    """Test database connection on startup"""
+    import logging
+    from .core.database import engine
+    from sqlalchemy import text
+
+    logger = logging.getLogger(__name__)
+    logger.info("Starting up Vendorr API...")
+
+    try:
+        # Test database connection
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        logger.info("✅ Database connection successful")
+    except Exception as e:
+        logger.error(f"❌ Database connection failed: {e}")
+        # Don't raise - allow app to start for health check endpoint
+        logger.warning("App starting without database connection")
+
+    logger.info("✅ Vendorr API started successfully")
+
 # Session middleware for admin authentication
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key-change-in-production")
 

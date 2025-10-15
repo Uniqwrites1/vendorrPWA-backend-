@@ -50,32 +50,40 @@ async def websocket_notifications_endpoint(
     Connect with: ws://localhost:8000/ws/notifications?token={jwt_token}
     """
     from ..core.database import SessionLocal
-    db = SessionLocal()
     user = None
+    user_id = None
+    is_admin = False
+
     try:
-        # Verify token and get user
-        payload = decode_access_token(token)
-        user_id = payload.get("sub")
+        # Verify token and get user (use DB session only for authentication)
+        db = SessionLocal()
+        try:
+            payload = decode_access_token(token)
+            user_id = payload.get("sub")
 
-        if not user_id:
-            await websocket.close(code=1008, reason="Invalid token")
+            if not user_id:
+                await websocket.close(code=1008, reason="Invalid token")
+                return
+
+            user = db.query(User).filter(User.id == int(user_id)).first()
+            if not user:
+                await websocket.close(code=1008, reason="User not found")
+                return
+
+            # Store user info and close DB session
+            user_id = user.id
+            is_admin = user.role == UserRole.ADMIN
+        finally:
             db.close()
-            return
-
-        user = db.query(User).filter(User.id == int(user_id)).first()
-        if not user:
-            await websocket.close(code=1008, reason="User not found")
-            return
 
         # Connect the WebSocket
-        is_admin = user.role == UserRole.ADMIN
-        await manager.connect(websocket, user.id, is_admin=is_admin)
+        await manager.connect(websocket, user_id, is_admin=is_admin)
 
         # Send welcome message
         await websocket.send_json({
             "type": "connection",
             "message": "Connected to notifications",
-            "user_id": user.id,
+            "user_id": user_id,
             "is_admin": is_admin
         })
 
@@ -93,14 +101,12 @@ async def websocket_notifications_endpoint(
                 break
 
     except WebSocketDisconnect:
-        logger.info(f"WebSocket disconnected for user {user.id if user else 'unknown'}")
+        logger.info(f"WebSocket disconnected for user {user_id if user_id else 'unknown'}")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
     finally:
-        if user:
-            is_admin = user.role == UserRole.ADMIN
-            manager.disconnect(websocket, user.id, is_admin=is_admin)
-        db.close()
+        if user_id:
+            manager.disconnect(websocket, user_id, is_admin=is_admin)
 
 
 @router.websocket("/ws/admin")
@@ -113,31 +119,37 @@ async def websocket_admin_endpoint(
     Connect with: ws://localhost:8000/ws/admin?token={jwt_token}
     """
     from ..core.database import SessionLocal
-    db = SessionLocal()
-    user = None
+    user_id = None
+
     try:
-        # Verify token and get user
-        payload = decode_access_token(token)
-        user_id = payload.get("sub")
+        # Verify token and get user (use DB session only for authentication)
+        db = SessionLocal()
+        try:
+            payload = decode_access_token(token)
+            user_id = payload.get("sub")
 
-        if not user_id:
-            await websocket.close(code=1008, reason="Invalid token")
+            if not user_id:
+                await websocket.close(code=1008, reason="Invalid token")
+                return
+
+            user = db.query(User).filter(User.id == int(user_id)).first()
+            if not user or user.role != UserRole.ADMIN:
+                await websocket.close(code=1008, reason="Admin access required")
+                return
+
+            # Store user ID and close DB session
+            user_id = user.id
+        finally:
             db.close()
-            return
-
-        user = db.query(User).filter(User.id == int(user_id)).first()
-        if not user or user.role != UserRole.ADMIN:
-            await websocket.close(code=1008, reason="Admin access required")
-            return
 
         # Connect the WebSocket as admin
-        await manager.connect(websocket, user.id, is_admin=True)
+        await manager.connect(websocket, user_id, is_admin=True)
 
         # Send welcome message
         await websocket.send_json({
             "type": "connection",
             "message": "Connected to admin notifications",
-            "user_id": user.id
+            "user_id": user_id
         })
 
         # Keep connection alive
@@ -153,13 +165,12 @@ async def websocket_admin_endpoint(
                 break
 
     except WebSocketDisconnect:
-        logger.info(f"Admin WebSocket disconnected for user {user.id if user else 'unknown'}")
+        logger.info(f"Admin WebSocket disconnected for user {user_id if user_id else 'unknown'}")
     except Exception as e:
         logger.error(f"Admin WebSocket error: {e}")
     finally:
-        if user:
-            manager.disconnect(websocket, user.id, is_admin=True)
-        db.close()
+        if user_id:
+            manager.disconnect(websocket, user_id, is_admin=True)
 
 
 @router.get("/ws/stats")

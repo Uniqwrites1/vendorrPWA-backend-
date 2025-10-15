@@ -10,6 +10,11 @@
         .sidebar {
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            transition: transform 0.3s ease-in-out;
         }
         .sidebar .nav-link {
             color: rgba(255,255,255,0.8);
@@ -45,13 +50,146 @@
             background: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
+        /* Mobile Styles */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0 !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+            .mobile-menu-btn {
+                display: block !important;
+            }
+            .stat-card {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            .table-responsive {
+                font-size: 0.875rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .table-responsive table {
+                min-width: 600px;
+            }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
+            /* Mobile table improvements */
+            .table td, .table th {
+                padding: 0.5rem;
+                white-space: nowrap;
+            }
+            .btn-sm {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            .form-select-sm, .form-control-sm {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.875rem;
+            }
+            /* Stack grid items on mobile */
+            .row > [class*='col-'] {
+                margin-bottom: 1rem;
+            }
+            /* Make modals full-screen on mobile */
+            .modal-dialog {
+                margin: 0;
+                max-width: 100%;
+                height: 100%;
+            }
+            .modal-content {
+                height: 100%;
+                border-radius: 0;
+            }
+            /* Touch-friendly buttons */
+            .btn {
+                min-width: 44px;
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            /* Navbar adjustments */
+            .navbar-admin {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .navbar-admin h5 {
+                font-size: 1rem;
+            }
+        }
+        /* Tablet Styles */
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .sidebar {
+                width: 200px;
+            }
+            .sidebar .nav-link {
+                font-size: 0.875rem;
+                padding: 8px 15px;
+            }
+            .stat-card {
+                padding: 15px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+            .mobile-menu-btn {
+                display: none !important;
+            }
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            color: #667eea;
+            transition: color 0.2s;
+        }
+
+        .mobile-menu-btn:hover {
+            color: #764ba2;
+        }
+
+        .mobile-menu-btn:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
+    <!-- Mobile Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar" id="sidebar">
                 <div class="position-sticky pt-3">
                     <div class="text-center mb-4">
                         <h4 class="text-white">
@@ -104,11 +242,16 @@
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
                 <!-- Top navbar -->
-                <div class="navbar navbar-admin px-3 py-2 mb-4">
-                    <h5 class="mb-0">{{ page_title }}</h5>
+                <div class="navbar navbar-admin px-3 py-2 mb-4 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <button class="mobile-menu-btn me-3" onclick="toggleSidebar()">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h5 class="mb-0">{{ page_title }}</h5>
+                    </div>
                     <div class="navbar-nav">
                         <span class="navbar-text">
-                            <i class="fas fa-user"></i> Welcome, {{ admin_user.username }}
+                            <i class="fas fa-user"></i> <span class="d-none d-sm-inline">Welcome, </span>{{ admin_user.username }}
                         </span>
                     </div>
                 </div>
@@ -123,6 +266,56 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        // Close sidebar when clicking a link on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarLinks = document.querySelectorAll('.sidebar .nav-link');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 768) {
+                        closeSidebar();
+                    }
+                });
+            });
+
+            // Add scroll indicator for table-responsive on mobile
+            if (window.innerWidth < 768) {
+                const tableContainers = document.querySelectorAll('.table-responsive');
+                tableContainers.forEach(container => {
+                    const table = container.querySelector('table');
+                    if (table && table.offsetWidth > container.offsetWidth) {
+                        // Add visual indicator
+                        container.style.position = 'relative';
+                        const indicator = document.createElement('div');
+                        indicator.style.cssText = 'position: absolute; top: 10px; right: 10px; background: rgba(102, 126, 234, 0.9); color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.75rem; pointer-events: none; z-index: 10;';
+                        indicator.textContent = '← Scroll →';
+                        container.appendChild(indicator);
+
+                        // Remove indicator after scroll
+                        container.addEventListener('scroll', function() {
+                            if (indicator && indicator.parentNode) {
+                                indicator.remove();
+                            }
+                        }, { once: true });
+                    }
+                });
+            }
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

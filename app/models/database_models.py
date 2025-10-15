@@ -15,6 +15,7 @@ class OrderStatus(str, enum.Enum):
     PREPARING = "preparing"
     ALMOST_READY = "almost_ready"
     READY_FOR_PICKUP = "ready_for_pickup"
+    DELIVERED = "delivered"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 

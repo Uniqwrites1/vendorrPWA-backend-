@@ -242,22 +242,36 @@ function toggleAvailability(itemId) {
     });
 }
 
+let currentItemId = null;
+
 function showAddItemModal() {
+    currentItemId = null;
     document.getElementById('menuItemModalTitle').textContent = 'Add Menu Item';
     document.getElementById('menuItemForm').reset();
     new bootstrap.Modal(document.getElementById('menuItemModal')).show();
 }
 
 function editMenuItem(itemId) {
-    // In production, fetch actual item data
-    document.getElementById('menuItemModalTitle').textContent = 'Edit Menu Item';
-    document.getElementById('itemName').value = 'Sample Item';
-    document.getElementById('itemCategory').value = 'Main Course';
-    document.getElementById('itemDescription').value = 'Sample description';
-    document.getElementById('itemPrice').value = '12.99';
-    document.getElementById('itemAvailable').checked = true;
+    currentItemId = itemId;
 
-    new bootstrap.Modal(document.getElementById('menuItemModal')).show();
+    // Fetch actual item data
+    fetch(`/admin/api/menu/items/${itemId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('menuItemModalTitle').textContent = 'Edit Menu Item';
+            document.getElementById('itemName').value = data.name;
+            document.getElementById('itemCategory').value = data.category;
+            document.getElementById('itemDescription').value = data.description || '';
+            document.getElementById('itemPrice').value = data.price;
+            document.getElementById('itemAvailable').checked = data.available;
+            document.getElementById('itemImage').value = data.image_url || '';
+
+            new bootstrap.Modal(document.getElementById('menuItemModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error loading menu item data', 'danger');
+        });
 }
 
 function viewMenuItem(itemId) {
@@ -267,9 +281,26 @@ function viewMenuItem(itemId) {
 
 function deleteMenuItem(itemId) {
     if (confirm('Are you sure you want to delete this menu item?')) {
-        // In production, send delete request
-        document.getElementById(`item-${itemId}`).remove();
-        showAlert('Menu item deleted successfully!', 'success');
+        fetch(`/admin/api/menu/items/${itemId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message || 'Menu item deleted successfully!', 'success');
+                // Reload page to show updated list
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showAlert(data.detail || 'Error deleting menu item', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error deleting menu item', 'danger');
+        });
     }
 }
 
@@ -283,11 +314,32 @@ function saveMenuItem() {
         image_url: document.getElementById('itemImage').value
     };
 
-    // In production, send to API
-    console.log('Saving menu item:', formData);
+    // Determine if we're creating or updating
+    const url = currentItemId ? `/admin/api/menu/items/${currentItemId}` : '/admin/api/menu/items';
+    const method = currentItemId ? 'PUT' : 'POST';
 
-    bootstrap.Modal.getInstance(document.getElementById('menuItemModal')).hide();
-    showAlert('Menu item saved successfully!', 'success');
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('menuItemModal')).hide();
+            showAlert(data.message || 'Menu item saved successfully!', 'success');
+            // Reload page to show updated data
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showAlert(data.detail || 'Error saving menu item', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error saving menu item', 'danger');
+    });
 }
 
 function showAlert(message, type) {

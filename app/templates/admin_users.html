@@ -282,6 +282,7 @@ function toggleUserStatus(userId) {
 }
 
 function showAddUserModal() {
+    currentUserId = null;
     document.getElementById('userModalTitle').textContent = 'Add User';
     document.getElementById('userForm').reset();
     document.getElementById('passwordSection').style.display = 'block';
@@ -289,21 +290,33 @@ function showAddUserModal() {
     new bootstrap.Modal(document.getElementById('userModal')).show();
 }
 
+let currentUserId = null;
+
 function editUser(userId) {
-    // In production, fetch actual user data
-    document.getElementById('userModalTitle').textContent = 'Edit User';
-    document.getElementById('userFirstName').value = 'John';
-    document.getElementById('userLastName').value = 'Doe';
-    document.getElementById('userEmail').value = 'john@example.com';
-    document.getElementById('userRole').value = 'customer';
-    document.getElementById('userPhone').value = '+1234567890';
-    document.getElementById('userActive').checked = true;
+    currentUserId = userId;
 
-    // Hide password field for editing
-    document.getElementById('passwordSection').style.display = 'none';
-    document.getElementById('userPassword').required = false;
+    // Fetch actual user data
+    fetch(`/admin/api/users/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('userModalTitle').textContent = 'Edit User';
+            document.getElementById('userFirstName').value = data.first_name || '';
+            document.getElementById('userLastName').value = data.last_name || '';
+            document.getElementById('userEmail').value = data.email;
+            document.getElementById('userRole').value = data.role;
+            document.getElementById('userPhone').value = data.phone || '';
+            document.getElementById('userActive').checked = data.active;
 
-    new bootstrap.Modal(document.getElementById('userModal')).show();
+            // Hide password field for editing
+            document.getElementById('passwordSection').style.display = 'none';
+            document.getElementById('userPassword').required = false;
+
+            new bootstrap.Modal(document.getElementById('userModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error loading user data', 'danger');
+        });
 }
 
 function viewUser(userId) {
@@ -313,9 +326,25 @@ function viewUser(userId) {
 
 function deleteUser(userId) {
     if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-        // In production, send delete request
-        document.getElementById(`user-${userId}`).remove();
-        showAlert('User deleted successfully!', 'success');
+        fetch(`/admin/api/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`user-${userId}`).remove();
+                showAlert(data.message || 'User deleted successfully!', 'success');
+            } else {
+                showAlert(data.detail || 'Error deleting user', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error deleting user', 'danger');
+        });
     }
 }
 
@@ -329,15 +358,38 @@ function saveUser() {
         active: document.getElementById('userActive').checked
     };
 
-    if (document.getElementById('userPassword').required) {
-        formData.password = document.getElementById('userPassword').value;
+    // Add password if creating new user or if password field is filled
+    const passwordField = document.getElementById('userPassword');
+    if (passwordField.value) {
+        formData.password = passwordField.value;
     }
 
-    // In production, send to API
-    console.log('Saving user:', formData);
+    // Determine if we're creating or updating
+    const url = currentUserId ? `/admin/api/users/${currentUserId}` : '/admin/api/users';
+    const method = currentUserId ? 'PUT' : 'POST';
 
-    bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
-    showAlert('User saved successfully!', 'success');
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+            showAlert(data.message || 'User saved successfully!', 'success');
+            // Reload page to show updated data
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showAlert(data.detail || 'Error saving user', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error saving user', 'danger');
+    });
 }
 
 function showAlert(message, type) {

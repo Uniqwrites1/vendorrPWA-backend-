@@ -477,6 +477,159 @@ async def toggle_user_active(
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+# User CRUD endpoints
+@admin_router.post("/api/users")
+async def create_user(
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_user=Depends(get_current_admin_user)
+):
+    """Create a new user"""
+    try:
+        data = await request.json()
+
+        # Check if user already exists
+        existing_user = db.query(User).filter(User.email == data['email']).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User with this email already exists")
+
+        # Hash password
+        from app.auth.auth import AuthService
+        hashed_password = AuthService.get_password_hash(data['password'])
+
+        # Create user
+        user = User(
+            email=data['email'],
+            phone=data.get('phone'),
+            first_name=data.get('first_name'),
+            last_name=data.get('last_name'),
+            hashed_password=hashed_password,
+            role=data.get('role', 'customer'),
+            is_active=data.get('active', True)
+        )
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        return {"success": True, "message": "User created successfully", "user_id": user.id}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.get("/api/users/{user_id}")
+async def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin_user=Depends(get_current_admin_user)
+):
+    """Get user details for editing"""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {
+            "id": user.id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone": user.phone,
+            "role": user.role,
+            "active": user.is_active
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.put("/api/users/{user_id}")
+async def update_user(
+    user_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    admin_user=Depends(get_current_admin_user)
+):
+    """Update user details"""
+    try:
+        data = await request.json()
+
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Don't allow editing admin users (except by themselves)
+        if user.role == "admin" and user.id != admin_user.id:
+            raise HTTPException(status_code=403, detail="Cannot edit other admin users")
+
+        # Update fields
+        if 'email' in data:
+            # Check if email is already taken by another user
+            existing = db.query(User).filter(User.email == data['email'], User.id != user_id).first()
+            if existing:
+                raise HTTPException(status_code=400, detail="Email already in use")
+            user.email = data['email']
+
+        if 'first_name' in data:
+            user.first_name = data['first_name']
+        if 'last_name' in data:
+            user.last_name = data['last_name']
+        if 'phone' in data:
+            user.phone = data['phone']
+        if 'role' in data and user.role != "admin":  # Don't change admin role
+            user.role = data['role']
+        if 'active' in data and user.role != "admin":  # Don't deactivate admin
+            user.is_active = data['active']
+
+        # Update password if provided
+        if 'password' in data and data['password']:
+            from app.auth.auth import AuthService
+            user.hashed_password = AuthService.get_password_hash(data['password'])
+
+        user.updated_at = datetime.utcnow()
+        db.commit()
+
+        return {"success": True, "message": "User updated successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.delete("/api/users/{user_id}")
+async def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin_user=Depends(get_current_admin_user)
+):
+    """Delete a user"""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Don't allow deleting admin users
+        if user.role == "admin":
+            raise HTTPException(status_code=403, detail="Cannot delete admin users")
+
+        # Don't allow deleting yourself
+        if user.id == admin_user.id:
+            raise HTTPException(status_code=403, detail="Cannot delete yourself")
+
+        db.delete(user)
+        db.commit()
+
+        return {"success": True, "message": "User deleted successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Additional API endpoints for full CRUD operations
 @admin_router.post("/api/menu/items")
 async def create_menu_item(
@@ -515,6 +668,35 @@ async def create_menu_item(
 
     except Exception as e:
         db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.get("/api/menu/items/{item_id}")
+async def get_menu_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    admin_user=Depends(get_current_admin_user)
+):
+    """Get menu item details for editing"""
+    try:
+        menu_item = db.query(MenuItem).filter(MenuItem.id == item_id).first()
+        if not menu_item:
+            raise HTTPException(status_code=404, detail="Menu item not found")
+
+        # Get category name
+        category = db.query(MenuCategory).filter(MenuCategory.id == menu_item.category_id).first()
+
+        return {
+            "id": menu_item.id,
+            "name": menu_item.name,
+            "description": menu_item.description,
+            "price": float(menu_item.price),
+            "category": category.name if category else "Uncategorized",
+            "available": menu_item.is_available,
+            "image_url": menu_item.image_url,
+            "preparation_time": menu_item.preparation_time
+        }
+
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @admin_router.put("/api/menu/items/{item_id}")

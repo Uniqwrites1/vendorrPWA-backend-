@@ -141,11 +141,23 @@ require_customer = RoleChecker([UserRole.CUSTOMER])
 # User service functions
 def authenticate_user(email: str, password: str, db: Session) -> Union[User, bool]:
     """Authenticate user with email and password"""
+    import logging
+    logger = logging.getLogger(__name__)
+
     user = db.query(User).filter(User.email == email).first()
     if not user:
+        logger.debug(f"User not found: {email}")
         return False
+
+    if not user.hashed_password:
+        logger.error(f"User {email} has no hashed_password!")
+        return False
+
     if not AuthService.verify_password(password, user.hashed_password):
+        logger.debug(f"Password verification failed for: {email}")
         return False
+
+    logger.info(f"Authentication successful for: {email}")
     return user
 
 def get_user_by_email(email: str, db: Session) -> Optional[User]:

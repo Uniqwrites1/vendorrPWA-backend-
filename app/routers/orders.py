@@ -119,7 +119,7 @@ async def create_order(
             detail=f"Failed to create order: {str(e)}"
         )
 
-@router.get("/my", response_model=List[OrderResponse])
+@router.get("/my/", response_model=List[OrderResponse])
 async def get_my_orders(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -133,7 +133,7 @@ async def get_my_orders(
     )
     return orders
 
-@router.get("/{order_id}", response_model=OrderResponse)
+@router.get("/{order_id}/", response_model=OrderResponse)
 async def get_order(
     order_id: int,
     current_user: User = Depends(get_current_active_user),
@@ -155,7 +155,7 @@ async def get_order(
 
     return order
 
-@router.get("/track/{order_number}")
+@router.get("/track/{order_number}/")
 async def track_order(
     order_number: str,
     db: Session = Depends(get_db)

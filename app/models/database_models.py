@@ -28,9 +28,9 @@ class PaymentStatus(str, enum.Enum):
 
 class UserRole(str, enum.Enum):
     CUSTOMER = "customer"
-    STAFF = "staff"
-    KITCHEN = "kitchen"
-    COUNTER = "counter"
+    KITCHEN_STAFF = "kitchen_staff"
+    COUNTER_STAFF = "counter_staff"
+    MANAGER = "manager"
     ADMIN = "admin"
 
 

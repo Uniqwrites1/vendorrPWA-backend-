@@ -54,6 +54,9 @@ async def websocket_notifications_endpoint(
     user_id = None
     is_admin = False
 
+    # Accept the connection first to allow proper close codes
+    await websocket.accept()
+
     try:
         # Verify token and get user (use DB session only for authentication)
         db = SessionLocal()
@@ -76,8 +79,11 @@ async def websocket_notifications_endpoint(
         finally:
             db.close()
 
-        # Connect the WebSocket
-        await manager.connect(websocket, user_id, is_admin=is_admin)
+        # Register with connection manager
+        manager.active_connections[user_id] = {
+            'websocket': websocket,
+            'is_admin': is_admin
+        }
 
         # Send welcome message
         await websocket.send_json({
@@ -121,6 +127,9 @@ async def websocket_admin_endpoint(
     from ..core.database import SessionLocal
     user_id = None
 
+    # Accept the connection first to allow proper close codes
+    await websocket.accept()
+
     try:
         # Verify token and get user (use DB session only for authentication)
         db = SessionLocal()
@@ -142,8 +151,11 @@ async def websocket_admin_endpoint(
         finally:
             db.close()
 
-        # Connect the WebSocket as admin
-        await manager.connect(websocket, user_id, is_admin=True)
+        # Register with connection manager
+        manager.active_connections[user_id] = {
+            'websocket': websocket,
+            'is_admin': True
+        }
 
         # Send welcome message
         await websocket.send_json({

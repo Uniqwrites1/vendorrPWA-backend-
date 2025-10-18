@@ -117,6 +117,7 @@ app.add_middleware(SessionMiddleware, secret_key="your-secret-key-change-in-prod
 # CORS middleware for frontend communication
 from .core.config import settings
 
+# Add CORS before other middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
@@ -135,6 +136,22 @@ async def add_process_time_header(request: Request, call_next):
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
     return response
+
+# OPTIONS handler for preflight requests
+@app.options("/{full_path:path}")
+async def options_handler(request: Request, full_path: str):
+    """Handle OPTIONS preflight requests"""
+    return JSONResponse(
+        content={"message": "OK"},
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Max-Age": "3600",
+        }
+    )
 
 # Global exception handler
 @app.exception_handler(HTTPException)

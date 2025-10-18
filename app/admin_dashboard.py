@@ -82,10 +82,11 @@ def get_recent_orders(db: Session, limit: int = 20):
             "customer": f"{order.customer.first_name} {order.customer.last_name}" if order.customer else order.customer_name,
             "customer_email": order.customer.email if order.customer else order.customer_email,
             "items": items_summary,
-            "total": order.total_amount,
+            "total": float(order.total_amount) if order.total_amount else 0,
             "status": order.status,  # Already a string
             "payment_status": order.payment_status,  # Already a string
-            "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "bank_transfer_receipt": order.bank_transfer_receipt
         })
 
     return result
@@ -304,9 +305,9 @@ async def get_order_details(
                 "id": item.id,
                 "name": menu_item.name if menu_item else "Unknown Item",
                 "quantity": item.quantity,
-                "unit_price": float(item.unit_price),
-                "subtotal": float(item.subtotal),
-                "special_instructions": item.special_instructions
+                "unit_price": float(item.unit_price) if item.unit_price else 0,
+                "subtotal": float(item.total_price) if item.total_price else 0,
+                "special_instructions": item.customizations if item.customizations else None
             })
 
         return {
@@ -318,12 +319,14 @@ async def get_order_details(
             "status": order.status,
             "payment_status": order.payment_status,
             "payment_method": order.payment_method,
-            "subtotal": float(order.subtotal),
-            "tax": float(order.tax) if order.tax else 0,
-            "delivery_fee": float(order.delivery_fee) if order.delivery_fee else 0,
-            "total": float(order.total),
-            "special_instructions": order.special_instructions,
-            "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "payment_reference": order.payment_reference,
+            "bank_transfer_receipt": order.bank_transfer_receipt,
+            "subtotal": float(order.subtotal) if order.subtotal else 0,
+            "tax": float(order.tax_amount) if order.tax_amount else 0,
+            "delivery_fee": 0,  # Not in current model
+            "total": float(order.total_amount) if order.total_amount else 0,
+            "special_instructions": order.notes,
+            "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else "",
             "items": items_list
         }
 
@@ -663,8 +666,8 @@ async def delete_user(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Don't allow deleting admin users
-        if user.role == "admin":
+        # Don't allow deleting admin users (check both string and enum)
+        if user.role == UserRole.ADMIN or user.role == "admin":
             raise HTTPException(status_code=403, detail="Cannot delete admin users")
 
         # Don't allow deleting yourself

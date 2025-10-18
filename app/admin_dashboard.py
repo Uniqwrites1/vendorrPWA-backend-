@@ -134,12 +134,21 @@ def get_current_admin_user(request: Request):
     admin_session = request.session.get("admin_logged_in")
     if not admin_session:
         raise HTTPException(status_code=401, detail="Admin authentication required")
-    return {"username": "admin", "role": "admin"}
+    return {"username": request.session.get("admin_username", "admin"), "role": "admin"}
+
+# Helper function to check if user is authenticated (for HTML pages)
+def is_admin_authenticated(request: Request) -> bool:
+    return request.session.get("admin_logged_in", False)
 
 # Admin routes
 @admin_router.get("/", response_class=HTMLResponse)
-async def admin_dashboard(request: Request, db: Session = Depends(get_db), admin_user=Depends(get_current_admin_user)):
+async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     """Admin Dashboard - Overview of restaurant operations"""
+    # Check authentication and redirect if not logged in
+    if not is_admin_authenticated(request):
+        return RedirectResponse(url="/admin/login", status_code=303)
+
+    admin_user = {"username": request.session.get("admin_username", "admin"), "role": "admin"}
     stats = get_dashboard_stats(db)
     recent_orders = get_recent_orders(db, limit=10)
 
@@ -152,8 +161,12 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db), admin
     })
 
 @admin_router.get("/orders", response_class=HTMLResponse)
-async def admin_orders(request: Request, db: Session = Depends(get_db), admin_user=Depends(get_current_admin_user)):
+async def admin_orders(request: Request, db: Session = Depends(get_db)):
     """Order Management - View and manage all orders"""
+    if not is_admin_authenticated(request):
+        return RedirectResponse(url="/admin/login", status_code=303)
+
+    admin_user = {"username": request.session.get("admin_username", "admin"), "role": "admin"}
     orders = get_recent_orders(db, limit=50)  # Get more orders for management
 
     return templates.TemplateResponse("admin_orders.html", {
@@ -164,8 +177,12 @@ async def admin_orders(request: Request, db: Session = Depends(get_db), admin_us
     })
 
 @admin_router.get("/menu", response_class=HTMLResponse)
-async def admin_menu(request: Request, db: Session = Depends(get_db), admin_user=Depends(get_current_admin_user)):
+async def admin_menu(request: Request, db: Session = Depends(get_db)):
     """Menu Management - Manage restaurant menu items"""
+    if not is_admin_authenticated(request):
+        return RedirectResponse(url="/admin/login", status_code=303)
+
+    admin_user = {"username": request.session.get("admin_username", "admin"), "role": "admin"}
     menu_items = get_menu_items_from_db(db)
 
     return templates.TemplateResponse("admin_menu.html", {
@@ -176,8 +193,12 @@ async def admin_menu(request: Request, db: Session = Depends(get_db), admin_user
     })
 
 @admin_router.get("/users", response_class=HTMLResponse)
-async def admin_users(request: Request, db: Session = Depends(get_db), admin_user=Depends(get_current_admin_user)):
+async def admin_users(request: Request, db: Session = Depends(get_db)):
     """User Management - Manage customer and staff accounts"""
+    if not is_admin_authenticated(request):
+        return RedirectResponse(url="/admin/login", status_code=303)
+
+    admin_user = {"username": request.session.get("admin_username", "admin"), "role": "admin"}
     users = get_users_from_db(db)
 
     return templates.TemplateResponse("admin_users.html", {
@@ -188,8 +209,12 @@ async def admin_users(request: Request, db: Session = Depends(get_db), admin_use
     })
 
 @admin_router.get("/settings", response_class=HTMLResponse)
-async def admin_settings(request: Request, db: Session = Depends(get_db), admin_user=Depends(get_current_admin_user)):
+async def admin_settings(request: Request, db: Session = Depends(get_db)):
     """Settings - Configure WhatsApp and app settings"""
+    if not is_admin_authenticated(request):
+        return RedirectResponse(url="/admin/login", status_code=303)
+
+    admin_user = {"username": request.session.get("admin_username", "admin"), "role": "admin"}
     from app.models.database_models import AppSettings
 
     # Get or create settings

@@ -134,7 +134,11 @@ def get_current_admin_user(request: Request):
     admin_session = request.session.get("admin_logged_in")
     if not admin_session:
         raise HTTPException(status_code=401, detail="Admin authentication required")
-    return {"username": request.session.get("admin_username", "admin"), "role": "admin"}
+    return {
+        "id": request.session.get("admin_user_id"),
+        "username": request.session.get("admin_username", "admin"),
+        "role": "admin"
+    }
 
 # Helper function to check if user is authenticated (for HTML pages)
 def is_admin_authenticated(request: Request) -> bool:
@@ -652,7 +656,8 @@ async def update_user(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Don't allow editing admin users (except by themselves)
-        if user.role == "admin" and user.id != admin_user.id:
+        admin_user_id = admin_user.get("id") if isinstance(admin_user, dict) else getattr(admin_user, "id", None)
+        if user.role == "admin" and admin_user_id and user.id != admin_user_id:
             raise HTTPException(status_code=403, detail="Cannot edit other admin users")
 
         # Update fields
@@ -707,7 +712,8 @@ async def delete_user(
             raise HTTPException(status_code=403, detail="Cannot delete admin users")
 
         # Don't allow deleting yourself
-        if user.id == admin_user.id:
+        admin_user_id = admin_user.get("id") if isinstance(admin_user, dict) else getattr(admin_user, "id", None)
+        if admin_user_id and user.id == admin_user_id:
             raise HTTPException(status_code=403, detail="Cannot delete yourself")
 
         db.delete(user)

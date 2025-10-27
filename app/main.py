@@ -254,6 +254,20 @@ async def get_placeholder_image(width: int, height: int):
 
     return Response(content=svg_content, media_type="image/svg+xml")
 
+
+# Lightweight favicon handler to avoid 405 when proxies request /favicon.ico
+@app.get("/favicon.ico")
+async def favicon():
+    """Return no-content for favicon requests when the backend does not serve one.
+
+    This prevents 405 Method Not Allowed responses caused by the OPTIONS catch-all
+    creating an OPTIONS-only route for arbitrary paths. If you want to serve a
+    real favicon from the backend, replace this with a FileResponse pointing to
+    a real icon file.
+    """
+    from fastapi.responses import Response
+    return Response(status_code=204)
+
 # Import routers
 from .routers import auth, api_test, menu, orders, websocket
 from .admin_dashboard import admin_router

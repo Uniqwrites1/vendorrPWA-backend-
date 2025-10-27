@@ -275,6 +275,17 @@ async def admin_login_page(request: Request):
         "page_title": "Admin Login"
     })
 
+
+@admin_router.get("", response_class=HTMLResponse)
+async def admin_root(request: Request, db: Session = Depends(get_db)):
+    """Handle GET /admin (no trailing slash) by delegating to the dashboard handler.
+
+    This ensures requests to `/admin` (without a trailing slash) are handled and
+    don't return 405 when other global routes (like the OPTIONS catch-all) exist.
+    """
+    # Delegate to the main dashboard handler which performs auth/redirects
+    return await admin_dashboard(request, db)
+
 @admin_router.post("/login")
 async def admin_login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     """Handle admin login"""

@@ -62,59 +62,59 @@
             </thead>
             <tbody>
                 {% for order in orders %}
-                <tr id="order-{{ order.id }}">
+                <tr id="order-{{ order['id'] }}">
                     <td>
-                        <strong>#{{ order.id }}</strong>
+                        <strong>#{{ order['id'] }}</strong>
                     </td>
                     <td>
                         <div>
-                            <strong>{{ order.customer }}</strong>
+                            <strong>{{ order['customer'] }}</strong>
                         </div>
                     </td>
                     <td>
-                        <small class="text-muted">{{ order.items }}</small>
+                        <small class="text-muted">{{ order['items'] }}</small>
                     </td>
                     <td>
-                        <strong>${{ "%.2f"|format(order.total) }}</strong>
+                        <strong>₦{{ "%.2f"|format(order['total']) }}</strong>
                     </td>
                     <td>
                         <select class="form-select form-select-sm status-select"
-                                data-order-id="{{ order.id }}"
-                                onchange="updateOrderStatus({{ order.id }}, this.value)">
-                            <option value="pending_payment" {% if order.status == 'pending_payment' %}selected{% endif %}>Pending Payment</option>
-                            <option value="payment_confirmed" {% if order.status == 'payment_confirmed' %}selected{% endif %}>Payment Confirmed</option>
-                            <option value="preparing" {% if order.status == 'preparing' %}selected{% endif %}>Preparing</option>
-                            <option value="almost_ready" {% if order.status == 'almost_ready' %}selected{% endif %}>Almost Ready</option>
-                            <option value="ready_for_pickup" {% if order.status == 'ready_for_pickup' %}selected{% endif %}>Ready for Pickup</option>
-                            <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
-                            <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
-                            <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                data-order-id="{{ order['id'] }}"
+                                onchange="updateOrderStatus({{ order['id'] }}, this.value)">
+                            <option value="pending_payment" {% if order['status'] == 'pending_payment' %}selected{% endif %}>Pending Payment</option>
+                            <option value="payment_confirmed" {% if order['status'] == 'payment_confirmed' %}selected{% endif %}>Payment Confirmed</option>
+                            <option value="preparing" {% if order['status'] == 'preparing' %}selected{% endif %}>Preparing</option>
+                            <option value="almost_ready" {% if order['status'] == 'almost_ready' %}selected{% endif %}>Almost Ready</option>
+                            <option value="ready_for_pickup" {% if order['status'] == 'ready_for_pickup' %}selected{% endif %}>Ready for Pickup</option>
+                            <option value="delivered" {% if order['status'] == 'delivered' %}selected{% endif %}>Delivered</option>
+                            <option value="completed" {% if order['status'] == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="cancelled" {% if order['status'] == 'cancelled' %}selected{% endif %}>Cancelled</option>
                         </select>
                     </td>
                     <td>
                         <select class="form-select form-select-sm payment-select"
-                                data-order-id="{{ order.id }}"
-                                onchange="updatePaymentStatus({{ order.id }}, this.value)">
-                            <option value="pending" {% if order.payment_status == 'pending' %}selected{% endif %}>Pending</option>
-                            <option value="completed" {% if order.payment_status == 'completed' %}selected{% endif %}>Completed</option>
-                            <option value="failed" {% if order.payment_status == 'failed' %}selected{% endif %}>Failed</option>
-                            <option value="refunded" {% if order.payment_status == 'refunded' %}selected{% endif %}>Refunded</option>
+                                data-order-id="{{ order['id'] }}"
+                                onchange="updatePaymentStatus({{ order['id'] }}, this.value)">
+                            <option value="pending" {% if order['payment_status'] == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="completed" {% if order['payment_status'] == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="failed" {% if order['payment_status'] == 'failed' %}selected{% endif %}>Failed</option>
+                            <option value="refunded" {% if order['payment_status'] == 'refunded' %}selected{% endif %}>Refunded</option>
                         </select>
-                        {% if order.payment_method == 'bank_transfer' %}
-                            <button class="btn btn-sm btn-info mt-1" onclick="viewPaymentProof({{ order.id }})">
+                        {% if order['payment_method'] == 'bank_transfer' %}
+                            <button class="btn btn-sm btn-info mt-1" onclick="viewPaymentProof({{ order['id'] }})">
                                 View Proof
                             </button>
                         {% endif %}
                     </td>
                     <td>
-                        <small>{{ order.created_at }}</small>
+                        <small>{{ order['created_at'] }}</small>
                     </td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group">
-                            <button class="btn btn-outline-primary" onclick="viewOrderDetails({{ order.id }})">
+                            <button class="btn btn-outline-primary" onclick="viewOrderDetails({{ order['id'] }})">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-outline-success" onclick="printOrder({{ order.id }})">
+                            <button class="btn btn-outline-success" onclick="printOrder({{ order['id'] }})">
                                 <i class="fas fa-print"></i>
                             </button>
                         </div>

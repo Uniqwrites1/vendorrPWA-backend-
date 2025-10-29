@@ -180,7 +180,13 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
 @admin_router.get("/orders", response_class=HTMLResponse)
 async def admin_orders(request: Request, db: Session = Depends(get_db)):
     """Order Management - View and manage all orders"""
-    if not is_admin_authenticated(request):
+    # Force authentication check
+    try:
+        if not is_admin_authenticated(request):
+            return RedirectResponse(url="/admin/login", status_code=303)
+    except Exception as e:
+        # If session fails, redirect to login
+        print(f"Session error: {e}")
         return RedirectResponse(url="/admin/login", status_code=303)
 
     admin_user = {
@@ -200,7 +206,10 @@ async def admin_orders(request: Request, db: Session = Depends(get_db)):
 @admin_router.get("/menu", response_class=HTMLResponse)
 async def admin_menu(request: Request, db: Session = Depends(get_db)):
     """Menu Management - Manage restaurant menu items"""
-    if not is_admin_authenticated(request):
+    try:
+        if not is_admin_authenticated(request):
+            return RedirectResponse(url="/admin/login", status_code=303)
+    except Exception:
         return RedirectResponse(url="/admin/login", status_code=303)
 
     admin_user = {
@@ -220,7 +229,10 @@ async def admin_menu(request: Request, db: Session = Depends(get_db)):
 @admin_router.get("/users", response_class=HTMLResponse)
 async def admin_users(request: Request, db: Session = Depends(get_db)):
     """User Management - Manage customer and staff accounts"""
-    if not is_admin_authenticated(request):
+    try:
+        if not is_admin_authenticated(request):
+            return RedirectResponse(url="/admin/login", status_code=303)
+    except Exception:
         return RedirectResponse(url="/admin/login", status_code=303)
 
     admin_user = {

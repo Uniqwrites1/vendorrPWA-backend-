@@ -143,8 +143,13 @@ def get_current_admin_user(request: Request):
 # Helper function to check if user is authenticated (for HTML pages)
 def is_admin_authenticated(request: Request) -> bool:
     # Must have both logged_in flag AND user_id (for new session format)
-    return (request.session.get("admin_logged_in", False) and 
-            request.session.get("admin_user_id") is not None)
+    logged_in = request.session.get("admin_logged_in", False)
+    user_id = request.session.get("admin_user_id")
+
+    # Debug logging
+    print(f"[AUTH CHECK] logged_in={logged_in}, user_id={user_id}, session={dict(request.session)}")
+
+    return logged_in and user_id is not None
 
 # Admin routes
 @admin_router.get("/", response_class=HTMLResponse)

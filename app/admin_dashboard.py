@@ -142,7 +142,9 @@ def get_current_admin_user(request: Request):
 
 # Helper function to check if user is authenticated (for HTML pages)
 def is_admin_authenticated(request: Request) -> bool:
-    return request.session.get("admin_logged_in", False)
+    # Must have both logged_in flag AND user_id (for new session format)
+    return (request.session.get("admin_logged_in", False) and 
+            request.session.get("admin_user_id") is not None)
 
 # Admin routes
 @admin_router.get("/", response_class=HTMLResponse)
@@ -152,7 +154,11 @@ async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     if not is_admin_authenticated(request):
         return RedirectResponse(url="/admin/login", status_code=303)
 
-    admin_user = {"username": request.session.get("admin_username", "admin"), "role": "admin"}
+    admin_user = {
+        "id": request.session.get("admin_user_id"),
+        "username": request.session.get("admin_username", "admin"),
+        "role": "admin"
+    }
     stats = get_dashboard_stats(db)
     recent_orders = get_recent_orders(db, limit=10)
 
@@ -170,7 +176,11 @@ async def admin_orders(request: Request, db: Session = Depends(get_db)):
     if not is_admin_authenticated(request):
         return RedirectResponse(url="/admin/login", status_code=303)
 
-    admin_user = {"username": request.session.get("admin_username", "admin"), "role": "admin"}
+    admin_user = {
+        "id": request.session.get("admin_user_id"),
+        "username": request.session.get("admin_username", "admin"),
+        "role": "admin"
+    }
     orders = get_recent_orders(db, limit=50)  # Get more orders for management
 
     return templates.TemplateResponse("admin_orders.html", {
@@ -186,7 +196,11 @@ async def admin_menu(request: Request, db: Session = Depends(get_db)):
     if not is_admin_authenticated(request):
         return RedirectResponse(url="/admin/login", status_code=303)
 
-    admin_user = {"username": request.session.get("admin_username", "admin"), "role": "admin"}
+    admin_user = {
+        "id": request.session.get("admin_user_id"),
+        "username": request.session.get("admin_username", "admin"),
+        "role": "admin"
+    }
     menu_items = get_menu_items_from_db(db)
 
     return templates.TemplateResponse("admin_menu.html", {
@@ -202,7 +216,11 @@ async def admin_users(request: Request, db: Session = Depends(get_db)):
     if not is_admin_authenticated(request):
         return RedirectResponse(url="/admin/login", status_code=303)
 
-    admin_user = {"username": request.session.get("admin_username", "admin"), "role": "admin"}
+    admin_user = {
+        "id": request.session.get("admin_user_id"),
+        "username": request.session.get("admin_username", "admin"),
+        "role": "admin"
+    }
     users = get_users_from_db(db)
 
     return templates.TemplateResponse("admin_users.html", {
@@ -218,7 +236,11 @@ async def admin_settings(request: Request, db: Session = Depends(get_db)):
     if not is_admin_authenticated(request):
         return RedirectResponse(url="/admin/login", status_code=303)
 
-    admin_user = {"username": request.session.get("admin_username", "admin"), "role": "admin"}
+    admin_user = {
+        "id": request.session.get("admin_user_id"),
+        "username": request.session.get("admin_username", "admin"),
+        "role": "admin"
+    }
     from app.models.database_models import AppSettings
 
     # Get or create settings

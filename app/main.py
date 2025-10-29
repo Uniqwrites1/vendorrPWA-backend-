@@ -112,7 +112,10 @@ app = FastAPI(
 app.openapi = custom_openapi
 
 # Session middleware for admin authentication
-app.add_middleware(SessionMiddleware, secret_key="your-secret-key-change-in-production")
+# Using a strong secret key from environment or a secure default that changes with each deployment
+import secrets
+SESSION_SECRET = os.getenv("SESSION_SECRET_KEY", secrets.token_urlsafe(32))
+app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 
 # CORS middleware for frontend communication
 from .core.config import settings

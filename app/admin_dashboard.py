@@ -143,13 +143,15 @@ def get_current_admin_user(request: Request):
 # Helper function to check if user is authenticated (for HTML pages)
 def is_admin_authenticated(request: Request) -> bool:
     # Must have both logged_in flag AND user_id (for new session format)
-    logged_in = request.session.get("admin_logged_in", False)
-    user_id = request.session.get("admin_user_id")
+    is_logged_in = request.session.get("admin_logged_in", False)
+    has_user_id = request.session.get("admin_user_id") is not None
 
-    # Debug logging
-    print(f"[AUTH CHECK] logged_in={logged_in}, user_id={user_id}, session={dict(request.session)}")
+    # If logged in but no user_id (old session), clear the session
+    if is_logged_in and not has_user_id:
+        request.session.clear()
+        return False
 
-    return logged_in and user_id is not None
+    return is_logged_in and has_user_id
 
 # Admin routes
 @admin_router.get("/", response_class=HTMLResponse)
@@ -340,6 +342,12 @@ async def admin_login(request: Request, username: str = Form(...), password: str
             "error": "Invalid credentials",
             "page_title": "Admin Login"
         })
+
+@admin_router.get("/logout")
+async def admin_logout_get(request: Request):
+    """Handle admin logout via GET (for direct URL access)"""
+    request.session.clear()
+    return RedirectResponse(url="/admin/login", status_code=303)
 
 @admin_router.post("/logout")
 async def admin_logout(request: Request):

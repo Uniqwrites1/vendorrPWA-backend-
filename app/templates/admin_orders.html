@@ -156,30 +156,40 @@ function updateOrderStatus(orderId, newStatus) {
         },
         body: JSON.stringify({status: newStatus})
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // Update the row styling based on status
             const row = document.getElementById(`order-${orderId}`);
-            row.classList.remove('table-success', 'table-warning', 'table-info');
+            if (row) {
+                row.classList.remove('table-success', 'table-warning', 'table-info');
 
-            if (newStatus === 'completed') {
-                row.classList.add('table-success');
-            } else if (newStatus === 'delivered') {
-                row.classList.add('table-success');
-            } else if (newStatus === 'preparing') {
-                row.classList.add('table-warning');
-            } else if (newStatus === 'ready_for_pickup') {
-                row.classList.add('table-info');
+                if (newStatus === 'completed') {
+                    row.classList.add('table-success');
+                } else if (newStatus === 'delivered') {
+                    row.classList.add('table-success');
+                } else if (newStatus === 'preparing') {
+                    row.classList.add('table-warning');
+                } else if (newStatus === 'ready_for_pickup') {
+                    row.classList.add('table-info');
+                }
             }
 
             // Show success message
             showAlert('Order status updated successfully!', 'success');
+        } else {
+            showAlert(data.message || 'Failed to update order status', 'danger');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        showAlert('Error updating order status', 'danger');
+        console.error('Error updating order status:', error);
+        const errorMsg = error.detail || error.message || 'Error updating order status';
+        showAlert(errorMsg, 'danger');
     });
 }
 
@@ -248,7 +258,12 @@ function viewPaymentProof(orderId) {
 function viewOrderDetails(orderId) {
     // Fetch real order details
     fetch(`/admin/api/orders/${orderId}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => Promise.reject(err));
+            }
+            return response.json();
+        })
         .then(order => {
             const statusBadge = getStatusBadge(order.status);
             const paymentBadge = getPaymentBadge(order.payment_status);
@@ -298,12 +313,23 @@ function viewOrderDetails(orderId) {
                 </div>
             `;
 
-            document.getElementById('orderDetailsContent').innerHTML = orderDetails;
-            new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
+            const modalContent = document.getElementById('orderDetailsContent');
+            if (modalContent) {
+                modalContent.innerHTML = orderDetails;
+                const modalEl = document.getElementById('orderDetailsModal');
+                if (modalEl) {
+                    new bootstrap.Modal(modalEl).show();
+                } else {
+                    showAlert('Modal element not found', 'danger');
+                }
+            } else {
+                showAlert('Modal content element not found', 'danger');
+            }
         })
         .catch(error => {
-            console.error('Error:', error);
-            showAlert('Error loading order details', 'danger');
+            console.error('Error loading order details:', error);
+            const errorMsg = error.detail || error.message || 'Error loading order details';
+            showAlert(errorMsg, 'danger');
         });
 }
 

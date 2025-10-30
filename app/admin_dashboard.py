@@ -400,7 +400,7 @@ async def get_order_details(
         return {
             "id": order.id,
             "order_number": order.order_number,
-            "customer_name": customer.full_name if customer else "Unknown",
+            "customer_name": f"{customer.first_name or ''} {customer.last_name or ''}".strip() if customer else "Unknown",
             "customer_email": customer.email if customer else "",
             "customer_phone": customer.phone if customer else "",
             "status": order.status,

@@ -458,12 +458,16 @@ async def update_order_status(
         db.commit()
 
         # Send real-time notification to customer
-        await notify_order_status_change(
-            order_id=order.id,
-            customer_id=order.customer_id,
-            new_status=new_status,
-            order_number=order.order_number
-        )
+        try:
+            await notify_order_status_change(
+                order_id=order.id,
+                customer_id=order.customer_id,
+                new_status=new_status,
+                order_number=order.order_number
+            )
+        except Exception as notify_error:
+            # Log but don't fail the request if notification fails
+            print(f"WebSocket notification error: {notify_error}")
 
         return {"message": f"Order {order_id} status updated to {new_status}", "success": True}
 

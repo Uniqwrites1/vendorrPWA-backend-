@@ -1,4 +1,4 @@
-{% extends "admin_base.html" %}{% extends "admin_base.html" %}{% extends "admin_base.html" %}
+{% extends "admin_base.html" %}{% extends "admin_base.html" %}{% extends "admin_base.html" %}{% extends "admin_base.html" %}{% extends "admin_base.html" %}
 
 
 
@@ -6,269 +6,813 @@
 
 
 
-{% block content %}{% block title %}Order Management - Vendorr Admin{% endblock %}{% block content %}
+{% block content %}{% block title %}Order Management - Vendorr Admin{% endblock %}
 
 <div class="container-fluid">
 
-    <div class="d-flex justify-content-between align-items-center mb-4"><!-- Orders Management Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
         <h2><i class="fas fa-shopping-cart me-2"></i>Order Management</h2>
 
-        <button class="btn btn-primary" onclick="refreshOrders()">{% block content %}<div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-primary" onclick="refreshOrders()">{% block content %}{% block title %}Order Management - Vendorr Admin{% endblock %}
 
             <i class="fas fa-sync-alt"></i> Refresh
 
-        </button><div class="container-fluid">    <div>
+        </button><div class="container-fluid">
 
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">        <h4 class="mb-0">Order Management</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    <!-- Alert Container -->
+    <div id="alertContainer"></div>
 
-    <div id="alertContainer"></div>        <h2><i class="fas fa-shopping-cart me-2"></i>Order Management</h2>        <p class="text-muted mb-0">Manage and track restaurant orders</p>
-
-
-
-    <!-- Orders Table -->        <button class="btn btn-primary" onclick="refreshOrders()">    </div>
+        <h2><i class="fas fa-shopping-cart me-2"></i>Order Management</h2>
 
     <div class="card shadow-sm">
 
-        <div class="card-body">            <i class="fas fa-sync-alt"></i> Refresh    <div>
+        <div class="card-body">        <button class="btn btn-primary" onclick="refreshOrders()">{% block content %}{% block title %}Order Management - Vendorr Admin{% endblock %}{% block content %}
 
             <div class="table-responsive">
 
-                <table class="table table-hover align-middle" id="ordersTable">        </button>        <button class="btn btn-success" onclick="refreshOrders()">
+                <table class="table table-hover align-middle">            <i class="fas fa-sync-alt"></i> Refresh
 
                     <thead class="table-light">
 
-                        <tr>    </div>            <i class="fas fa-sync-alt"></i> Refresh
+                        <tr>        </button><div class="container-fluid">
 
                             <th>Order ID</th>
 
-                            <th>Customer</th>        </button>
+                            <th>Customer</th>    </div>
 
                             <th>Items</th>
 
-                            <th>Total</th>    <!-- Alert Container -->    </div>
+                            <th>Total</th>    <div class="d-flex justify-content-between align-items-center mb-4"><!-- Orders Management Header -->
 
                             <th>Payment Status</th>
 
-                            <th>Order Status</th>    <div id="alertContainer"></div></div>
+                            <th>Order Status</th>    <div id="alertContainer"></div>
 
                             <th>Order Time</th>
 
-                            <th>Actions</th>
+                            <th>Actions</th>        <h2><i class="fas fa-shopping-cart me-2"></i>Order Management</h2>
 
                         </tr>
 
-                    </thead>    <!-- Orders Table --><!-- Order Filters -->
+                    </thead>    <div class="card shadow-sm">
 
                     <tbody>
 
-                        {% for order in orders %}    <div class="card shadow-sm"><div class="stat-card mb-4">
+                        {% for order in orders %}        <div class="card-body">        <button class="btn btn-primary" onclick="refreshOrders()">{% block content %}<div class="d-flex justify-content-between align-items-center mb-4">
 
-                        <tr id="order-{{ order['id'] }}" class="order-row-{{ order['status'] }}">
+                        <tr id="order-{{ order['id'] }}">
 
-                            <td><strong>#{{ order['id'] }}</strong></td>        <div class="card-body">    <div class="row">
+                            <td><strong>#{{ order['id'] }}</strong></td>            <div class="table-responsive">
 
                             <td>{{ order['customer'] }}</td>
 
-                            <td><small class="text-muted">{{ order['items'] }}</small></td>            <div class="table-responsive">        <div class="col-md-3">
+                            <td><small class="text-muted">{{ order['items'] }}</small></td>                <table class="table table-hover align-middle">            <i class="fas fa-sync-alt"></i> Refresh
 
                             <td><strong>₦{{ "%.2f"|format(order['total']) }}</strong></td>
 
-                            <td>                <table class="table table-hover align-middle" id="ordersTable">            <select class="form-select" id="statusFilter">
+                            <td>                    <thead class="table-light">
 
-                                <select class="form-select form-select-sm payment-status-select"
+                                <select class="form-select form-select-sm" onchange="updatePaymentStatus({{ order['id'] }}, this.value)">
 
-                                        onchange="updatePaymentStatus({{ order['id'] }}, this.value)">                    <thead class="table-light">                <option value="">All Statuses</option>
+                                    <option value="pending" {% if order['payment_status'] == 'pending' %}selected{% endif %}>Pending</option>                        <tr>        </button><div class="container-fluid">    <div>
 
-                                    <option value="pending" {% if order['payment_status'] == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="paid" {% if order['payment_status'] == 'paid' %}selected{% endif %}>Paid</option>
 
-                                    <option value="paid" {% if order['payment_status'] == 'paid' %}selected{% endif %}>Paid</option>                        <tr>                <option value="pending_payment">Pending Payment</option>
+                                    <option value="failed" {% if order['payment_status'] == 'failed' %}selected{% endif %}>Failed</option>                            <th>Order ID</th>
 
-                                    <option value="failed" {% if order['payment_status'] == 'failed' %}selected{% endif %}>Failed</option>
+                                    <option value="refunded" {% if order['payment_status'] == 'refunded' %}selected{% endif %}>Refunded</option>
 
-                                    <option value="refunded" {% if order['payment_status'] == 'refunded' %}selected{% endif %}>Refunded</option>                            <th>Order ID</th>                <option value="payment_confirmed">Payment Confirmed</option>
+                                </select>                            <th>Customer</th>    </div>
 
-                                </select>
+                            </td>
 
-                            </td>                            <th>Customer</th>                <option value="preparing">Preparing</option>
+                            <td>                            <th>Items</th>
 
-                            <td>
+                                <select class="form-select form-select-sm" onchange="updateOrderStatus({{ order['id'] }}, this.value)">
 
-                                <select class="form-select form-select-sm order-status-select"                             <th>Items</th>                <option value="almost_ready">Almost Ready</option>
-
-                                        onchange="updateOrderStatus({{ order['id'] }}, this.value)">
-
-                                    <option value="pending_payment" {% if order['status'] == 'pending_payment' %}selected{% endif %}>Pending Payment</option>                            <th>Total</th>                <option value="ready_for_pickup">Ready for Pickup</option>
+                                    <option value="pending_payment" {% if order['status'] == 'pending_payment' %}selected{% endif %}>Pending Payment</option>                            <th>Total</th>    <div class="d-flex justify-content-between align-items-center mb-4">        <h4 class="mb-0">Order Management</h4>
 
                                     <option value="payment_confirmed" {% if order['status'] == 'payment_confirmed' %}selected{% endif %}>Payment Confirmed</option>
 
-                                    <option value="preparing" {% if order['status'] == 'preparing' %}selected{% endif %}>Preparing</option>                            <th>Payment Status</th>                <option value="delivered">Delivered</option>
+                                    <option value="preparing" {% if order['status'] == 'preparing' %}selected{% endif %}>Preparing</option>                            <th>Payment Status</th>
 
                                     <option value="almost_ready" {% if order['status'] == 'almost_ready' %}selected{% endif %}>Almost Ready</option>
 
-                                    <option value="ready_for_pickup" {% if order['status'] == 'ready_for_pickup' %}selected{% endif %}>Ready for Pickup</option>                            <th>Order Status</th>                <option value="completed">Completed</option>
+                                    <option value="ready_for_pickup" {% if order['status'] == 'ready_for_pickup' %}selected{% endif %}>Ready for Pickup</option>                            <th>Order Status</th>    <!-- Alert Container -->
 
                                     <option value="delivered" {% if order['status'] == 'delivered' %}selected{% endif %}>Delivered</option>
 
-                                    <option value="completed" {% if order['status'] == 'completed' %}selected{% endif %}>Completed</option>                            <th>Order Time</th>                <option value="cancelled">Cancelled</option>
+                                    <option value="completed" {% if order['status'] == 'completed' %}selected{% endif %}>Completed</option>                            <th>Order Time</th>
 
                                     <option value="cancelled" {% if order['status'] == 'cancelled' %}selected{% endif %}>Cancelled</option>
 
-                                </select>                            <th>Actions</th>            </select>
+                                </select>                            <th>Actions</th>    <div id="alertContainer"></div>        <h2><i class="fas fa-shopping-cart me-2"></i>Order Management</h2>        <p class="text-muted mb-0">Manage and track restaurant orders</p>
 
                             </td>
 
-                            <td><small>{{ order['created_at'] }}</small></td>                        </tr>        </div>
+                            <td><small>{{ order['created_at'] }}</small></td>                        </tr>
 
                             <td>
 
-                                <button class="btn btn-sm btn-info" onclick="viewOrderDetails({{ order['id'] }})" title="View Details">                    </thead>        <div class="col-md-3">
+                                <button class="btn btn-sm btn-info" onclick="viewOrderDetails({{ order['id'] }})">                    </thead>
 
                                     <i class="fas fa-eye"></i>
 
-                                </button>                    <tbody>            <input type="date" class="form-control" id="dateFilter" placeholder="Filter by date">
+                                </button>                    <tbody>
 
                             </td>
 
-                        </tr>                        {% for order in orders %}        </div>
+                        </tr>                        {% for order in orders %}    <!-- Orders Table -->        <button class="btn btn-primary" onclick="refreshOrders()">    </div>
 
                         {% endfor %}
 
-                    </tbody>                        <tr id="order-{{ order['id'] }}" class="order-row-{{ order['status'] }}">        <div class="col-md-3">
+                    </tbody>                        <tr id="order-{{ order['id'] }}">
 
                 </table>
 
-            </div>                            <td><strong>#{{ order['id'] }}</strong></td>            <input type="text" class="form-control" id="customerFilter" placeholder="Search customer...">
+            </div>                            <td><strong>#{{ order['id'] }}</strong></td>    <div class="card shadow-sm">
 
         </div>
 
-    </div>                            <td>{{ order['customer'] }}</td>        </div>
+    </div>                            <td>{{ order['customer'] }}</td>
 
 </div>
 
-                            <td><small class="text-muted">{{ order['items'] }}</small></td>        <div class="col-md-3">
+                            <td><small class="text-muted">{{ order['items'] }}</small></td>        <div class="card-body">            <i class="fas fa-sync-alt"></i> Refresh    <div>
 
-<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
 
-<div class="modal fade" id="orderDetailsModal" tabindex="-1">                            <td><strong>₦{{ "%.2f"|format(order['total']) }}</strong></td>            <button class="btn btn-primary" onclick="applyFilters()">
+    <div class="modal-dialog modal-lg">                            <td><strong>₦{{ "%.2f"|format(order['total']) }}</strong></td>
 
-    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
 
-        <div class="modal-content">                            <td>                <i class="fas fa-filter"></i> Apply Filters
+            <div class="modal-header">                            <td>            <div class="table-responsive">
 
-            <div class="modal-header">
+                <h5 class="modal-title">Order Details</h5>
 
-                <h5 class="modal-title">Order Details</h5>                                <select class="form-select form-select-sm payment-status-select"             </button>
-
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-
-            </div>                                        onchange="updatePaymentStatus({{ order['id'] }}, this.value)">        </div>
-
-            <div class="modal-body" id="orderDetailsContent">
-
-                <!-- Dynamic content will be inserted here -->                                    <option value="pending" {% if order['payment_status'] == 'pending' %}selected{% endif %}>Pending</option>    </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>                                <select class="form-select form-select-sm" onchange="updatePaymentStatus({{ order['id'] }}, this.value)">
 
             </div>
 
-            <div class="modal-footer">                                    <option value="paid" {% if order['payment_status'] == 'paid' %}selected{% endif %}>Paid</option></div>
+            <div class="modal-body" id="orderDetailsContent"></div>                                    <option value="pending" {% if order['payment_status'] == 'pending' %}selected{% endif %}>Pending</option>                <table class="table table-hover align-middle" id="ordersTable">        </button>        <button class="btn btn-success" onclick="refreshOrders()">
 
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <div class="modal-footer">
 
-                <button type="button" class="btn btn-primary" onclick="printOrder()">                                    <option value="failed" {% if order['payment_status'] == 'failed' %}selected{% endif %}>Failed</option>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>                                    <option value="paid" {% if order['payment_status'] == 'paid' %}selected{% endif %}>Paid</option>
 
-                    <i class="fas fa-print"></i> Print Order
+                <button type="button" class="btn btn-primary" onclick="printOrder()">
 
-                </button>                                    <option value="refunded" {% if order['payment_status'] == 'refunded' %}selected{% endif %}>Refunded</option><!-- Orders Table -->
+                    <i class="fas fa-print"></i> Print                                    <option value="failed" {% if order['payment_status'] == 'failed' %}selected{% endif %}>Failed</option>                    <thead class="table-light">
 
-            </div>
+                </button>
 
-        </div>                                </select><div class="stat-card">
+            </div>                                    <option value="refunded" {% if order['payment_status'] == 'refunded' %}selected{% endif %}>Refunded</option>
 
-    </div>
+        </div>
 
-</div>                            </td>    <div class="table-responsive">
+    </div>                                </select>                        <tr>    </div>            <i class="fas fa-sync-alt"></i> Refresh
 
-{% endblock %}
+</div>
 
-                            <td>        <table class="table table-hover" id="ordersTable">
-
-{% block scripts %}
-
-<script>                                <select class="form-select form-select-sm order-status-select"             <thead class="table-light">
-
-// WebSocket connection for real-time updates
-
-var ws = null;                                        onchange="updateOrderStatus({{ order['id'] }}, this.value)">                <tr>
+{% endblock %}                            </td>
 
 
 
-function connectWebSocket() {                                    <option value="pending_payment" {% if order['status'] == 'pending_payment' %}selected{% endif %}>Pending Payment</option>                    <th>Order ID</th>
+{% block scripts %}                            <td>                            <th>Order ID</th>
+
+<script>
+
+var ws = null;                                <select class="form-select form-select-sm" onchange="updateOrderStatus({{ order['id'] }}, this.value)">
+
+
+
+function connectWebSocket() {                                    <option value="pending_payment" {% if order['status'] == 'pending_payment' %}selected{% endif %}>Pending Payment</option>                            <th>Customer</th>        </button>
 
     var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 
-    var wsUrl = protocol + '//' + window.location.host + '/ws/admin';                                    <option value="payment_confirmed" {% if order['status'] == 'payment_confirmed' %}selected{% endif %}>Payment Confirmed</option>                    <th>Customer</th>
+    var wsUrl = protocol + '//' + window.location.host + '/ws/admin';                                    <option value="payment_confirmed" {% if order['status'] == 'payment_confirmed' %}selected{% endif %}>Payment Confirmed</option>
 
+    ws = new WebSocket(wsUrl);
 
+    ws.onopen = function() { console.log('WebSocket connected'); };                                    <option value="preparing" {% if order['status'] == 'preparing' %}selected{% endif %}>Preparing</option>                            <th>Items</th>
 
-    ws = new WebSocket(wsUrl);                                    <option value="preparing" {% if order['status'] == 'preparing' %}selected{% endif %}>Preparing</option>                    <th>Items</th>
+    ws.onmessage = function(event) {
 
+        var data = JSON.parse(event.data);                                    <option value="almost_ready" {% if order['status'] == 'almost_ready' %}selected{% endif %}>Almost Ready</option>
 
+        if (data.type === 'new_order' || data.type === 'order_update') {
 
-    ws.onopen = function() {                                    <option value="almost_ready" {% if order['status'] == 'almost_ready' %}selected{% endif %}>Almost Ready</option>                    <th>Total</th>
+            refreshOrders();                                    <option value="ready_for_pickup" {% if order['status'] == 'ready_for_pickup' %}selected{% endif %}>Ready for Pickup</option>                            <th>Total</th>    <!-- Alert Container -->    </div>
 
-        console.log('WebSocket connected');
+        }
 
-    };                                    <option value="ready_for_pickup" {% if order['status'] == 'ready_for_pickup' %}selected{% endif %}>Ready for Pickup</option>                    <th>Status</th>
-
-
-
-    ws.onmessage = function(event) {                                    <option value="delivered" {% if order['status'] == 'delivered' %}selected{% endif %}>Delivered</option>                    <th>Payment</th>
-
-        var data = JSON.parse(event.data);
-
-        if (data.type === 'new_order' || data.type === 'order_update') {                                    <option value="completed" {% if order['status'] == 'completed' %}selected{% endif %}>Completed</option>                    <th>Created</th>
-
-            refreshOrders();
-
-        }                                    <option value="cancelled" {% if order['status'] == 'cancelled' %}selected{% endif %}>Cancelled</option>                    <th>Actions</th>
-
-    };
-
-                                    </select>                </tr>
+    };                                    <option value="delivered" {% if order['status'] == 'delivered' %}selected{% endif %}>Delivered</option>
 
     ws.onclose = function() {
 
-        console.log('WebSocket disconnected. Reconnecting in 5s...');                            </td>            </thead>
+        console.log('WebSocket disconnected. Reconnecting...');                                    <option value="completed" {% if order['status'] == 'completed' %}selected{% endif %}>Completed</option>                            <th>Payment Status</th>
 
         setTimeout(connectWebSocket, 5000);
 
-    };                            <td><small>{{ order['created_at'] }}</small></td>            <tbody>
-
-
-
-    ws.onerror = function(error) {                            <td>                {% for order in orders %}
-
-        console.error('WebSocket error:', error);
-
-    };                                <button class="btn btn-sm btn-info" onclick="viewOrderDetails({{ order['id'] }})" title="View Details">                <tr id="order-{{ order['id'] }}">
+    };                                    <option value="cancelled" {% if order['status'] == 'cancelled' %}selected{% endif %}>Cancelled</option>
 
 }
 
+                                </select>                            <th>Order Status</th>    <div id="alertContainer"></div></div>
+
+function showAlert(message, type) {
+
+    var alertContainer = document.getElementById('alertContainer');                            </td>
+
+    var alertDiv = document.createElement('div');
+
+    alertDiv.className = 'alert alert-' + type + ' alert-dismissible fade show';                            <td><small>{{ order['created_at'] }}</small></td>                            <th>Order Time</th>
+
+    alertDiv.innerHTML = message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+
+    alertContainer.appendChild(alertDiv);                            <td>
+
+    setTimeout(function() { alertDiv.remove(); }, 5000);
+
+}                                <button class="btn btn-sm btn-info" onclick="viewOrderDetails({{ order['id'] }})">                            <th>Actions</th>
+
+
+
+function updateOrderStatus(orderId, newStatus) {                                    <i class="fas fa-eye"></i>
+
+    fetch('/admin/api/orders/' + orderId + '/update-status', {
+
+        method: 'POST',                                </button>                        </tr>
+
+        headers: { 'Content-Type': 'application/json' },
+
+        body: JSON.stringify({ status: newStatus })                            </td>
+
+    })
+
+    .then(function(response) { return response.json(); })                        </tr>                    </thead>    <!-- Orders Table --><!-- Order Filters -->
+
+    .then(function(data) {
+
+        if (data.success) {                        {% endfor %}
+
+            showAlert('Order #' + orderId + ' status updated', 'success');
+
+            updateRowStyling(orderId, newStatus);                    </tbody>                    <tbody>
+
+        } else {
+
+            showAlert('Failed to update status', 'danger');                </table>
+
+        }
+
+    })            </div>                        {% for order in orders %}    <div class="card shadow-sm"><div class="stat-card mb-4">
+
+    .catch(function(error) {
+
+        showAlert('Error: ' + error.message, 'danger');        </div>
+
+    });
+
+}    </div>                        <tr id="order-{{ order['id'] }}" class="order-row-{{ order['status'] }}">
+
+
+
+function updatePaymentStatus(orderId, newStatus) {</div>
+
+    fetch('/admin/api/orders/' + orderId + '/update-payment-status', {
+
+        method: 'POST',                            <td><strong>#{{ order['id'] }}</strong></td>        <div class="card-body">    <div class="row">
+
+        headers: { 'Content-Type': 'application/json' },
+
+        body: JSON.stringify({ payment_status: newStatus })<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+
+    })
+
+    .then(function(response) { return response.json(); })    <div class="modal-dialog modal-lg">                            <td>{{ order['customer'] }}</td>
+
+    .then(function(data) {
+
+        if (data.success) {        <div class="modal-content">
+
+            showAlert('Payment status updated', 'success');
+
+        } else {            <div class="modal-header">                            <td><small class="text-muted">{{ order['items'] }}</small></td>            <div class="table-responsive">        <div class="col-md-3">
+
+            showAlert('Failed to update payment status', 'danger');
+
+        }                <h5 class="modal-title">Order Details</h5>
+
+    })
+
+    .catch(function(error) {                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>                            <td><strong>₦{{ "%.2f"|format(order['total']) }}</strong></td>
+
+        showAlert('Error: ' + error.message, 'danger');
+
+    });            </div>
+
+}
+
+            <div class="modal-body" id="orderDetailsContent"></div>                            <td>                <table class="table table-hover align-middle" id="ordersTable">            <select class="form-select" id="statusFilter">
+
+function updateRowStyling(orderId, status) {
+
+    var row = document.getElementById('order-' + orderId);            <div class="modal-footer">
+
+    if (!row) return;
+
+    row.classList.remove('table-success', 'table-warning', 'table-danger', 'table-info');                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>                                <select class="form-select form-select-sm payment-status-select"
+
+    if (status === 'completed' || status === 'delivered') {
+
+        row.classList.add('table-success');                <button type="button" class="btn btn-primary" onclick="printOrder()">
+
+    } else if (status === 'pending_payment') {
+
+        row.classList.add('table-warning');                    <i class="fas fa-print"></i> Print                                        onchange="updatePaymentStatus({{ order['id'] }}, this.value)">                    <thead class="table-light">                <option value="">All Statuses</option>
+
+    } else if (status === 'cancelled') {
+
+        row.classList.add('table-danger');                </button>
+
+    } else if (status === 'preparing' || status === 'almost_ready') {
+
+        row.classList.add('table-info');            </div>                                    <option value="pending" {% if order['payment_status'] == 'pending' %}selected{% endif %}>Pending</option>
+
+    }
+
+}        </div>
+
+
+
+function viewOrderDetails(orderId) {    </div>                                    <option value="paid" {% if order['payment_status'] == 'paid' %}selected{% endif %}>Paid</option>                        <tr>                <option value="pending_payment">Pending Payment</option>
+
+    fetch('/admin/api/orders/' + orderId)
+
+        .then(function(response) { return response.json(); })</div>
+
+        .then(function(order) {
+
+            displayOrderDetails(order);{% endblock %}                                    <option value="failed" {% if order['payment_status'] == 'failed' %}selected{% endif %}>Failed</option>
+
+        })
+
+        .catch(function(error) {
+
+            showAlert('Error loading order details', 'danger');
+
+        });{% block scripts %}                                    <option value="refunded" {% if order['payment_status'] == 'refunded' %}selected{% endif %}>Refunded</option>                            <th>Order ID</th>                <option value="payment_confirmed">Payment Confirmed</option>
+
+}
+
+<script>
+
+function displayOrderDetails(order) {
+
+    var itemsHtml = '';var ws = null;                                </select>
+
+    if (order.items && order.items.length > 0) {
+
+        order.items.forEach(function(item) {
+
+            itemsHtml += '<li class="list-group-item">' +
+
+                '<strong>' + item.quantity + 'x ' + item.name + '</strong> - ₦' + parseFloat(item.unit_price).toFixed(2) +function connectWebSocket() {                            </td>                            <th>Customer</th>                <option value="preparing">Preparing</option>
+
+                (item.special_instructions ? '<br><small class="text-muted">' + item.special_instructions + '</small>' : '') +
+
+                '</li>';    var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+
+        });
+
+    }    var wsUrl = protocol + '//' + window.location.host + '/ws/admin';                            <td>
+
+
+
+    var receiptHtml = '';    ws = new WebSocket(wsUrl);
+
+    if (order.bank_transfer_receipt) {
+
+        receiptHtml = '<div class="mt-3"><h6>Payment Receipt</h6>' +    ws.onopen = function() { console.log('WebSocket connected'); };                                <select class="form-select form-select-sm order-status-select"                             <th>Items</th>                <option value="almost_ready">Almost Ready</option>
+
+            '<a href="' + order.bank_transfer_receipt + '" target="_blank" class="btn btn-sm btn-primary">View Receipt</a>' +
+
+            '<img src="' + order.bank_transfer_receipt + '" class="img-fluid mt-2" style="max-height: 300px;">' +    ws.onmessage = function(event) {
+
+            '</div>';
+
+    }        var data = JSON.parse(event.data);                                        onchange="updateOrderStatus({{ order['id'] }}, this.value)">
+
+
+
+    var content = '<div class="row">' +        if (data.type === 'new_order' || data.type === 'order_update') {
+
+        '<div class="col-md-6">' +
+
+        '<h6>Order Information</h6>' +            refreshOrders();                                    <option value="pending_payment" {% if order['status'] == 'pending_payment' %}selected{% endif %}>Pending Payment</option>                            <th>Total</th>                <option value="ready_for_pickup">Ready for Pickup</option>
+
+        '<p><strong>Order #:</strong> ' + (order.order_number || 'N/A') + '</p>' +
+
+        '<p><strong>Customer:</strong> ' + (order.customer_name || 'N/A') + '</p>' +        }
+
+        '<p><strong>Email:</strong> ' + (order.customer_email || 'N/A') + '</p>' +
+
+        '<p><strong>Phone:</strong> ' + (order.customer_phone || 'N/A') + '</p>' +    };                                    <option value="payment_confirmed" {% if order['status'] == 'payment_confirmed' %}selected{% endif %}>Payment Confirmed</option>
+
+        '<p><strong>Status:</strong> ' + (order.status || 'N/A') + '</p>' +
+
+        '<p><strong>Payment:</strong> ' + (order.payment_status || 'N/A') + '</p>' +    ws.onclose = function() {
+
+        '<p><strong>Payment Method:</strong> ' + (order.payment_method || 'N/A') + '</p>' +
+
+        (order.payment_reference ? '<p><strong>Reference:</strong> ' + order.payment_reference + '</p>' : '') +        console.log('WebSocket disconnected. Reconnecting...');                                    <option value="preparing" {% if order['status'] == 'preparing' %}selected{% endif %}>Preparing</option>                            <th>Payment Status</th>                <option value="delivered">Delivered</option>
+
+        (order.special_instructions ? '<p><strong>Instructions:</strong> ' + order.special_instructions + '</p>' : '') +
+
+        receiptHtml +        setTimeout(connectWebSocket, 5000);
+
+        '</div>' +
+
+        '<div class="col-md-6">' +    };                                    <option value="almost_ready" {% if order['status'] == 'almost_ready' %}selected{% endif %}>Almost Ready</option>
+
+        '<h6>Order Items</h6>' +
+
+        '<ul class="list-group mb-3">' + itemsHtml + '</ul>' +}
+
+        '<div class="card bg-light"><div class="card-body">' +
+
+        '<p><strong>Subtotal:</strong> ₦' + (order.subtotal ? parseFloat(order.subtotal).toFixed(2) : '0.00') + '</p>' +                                    <option value="ready_for_pickup" {% if order['status'] == 'ready_for_pickup' %}selected{% endif %}>Ready for Pickup</option>                            <th>Order Status</th>                <option value="completed">Completed</option>
+
+        (order.tax && order.tax > 0 ? '<p><strong>Tax:</strong> ₦' + parseFloat(order.tax).toFixed(2) + '</p>' : '') +
+
+        (order.delivery_fee && order.delivery_fee > 0 ? '<p><strong>Delivery:</strong> ₦' + parseFloat(order.delivery_fee).toFixed(2) + '</p>' : '') +function showAlert(message, type) {
+
+        '<h5><strong>Total: ₦' + (order.total ? parseFloat(order.total).toFixed(2) : '0.00') + '</strong></h5>' +
+
+        '</div></div>' +    var alertContainer = document.getElementById('alertContainer');                                    <option value="delivered" {% if order['status'] == 'delivered' %}selected{% endif %}>Delivered</option>
+
+        '</div></div>';
+
+        var alertDiv = document.createElement('div');
+
+    document.getElementById('orderDetailsContent').innerHTML = content;
+
+    new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();    alertDiv.className = 'alert alert-' + type + ' alert-dismissible fade show';                                    <option value="completed" {% if order['status'] == 'completed' %}selected{% endif %}>Completed</option>                            <th>Order Time</th>                <option value="cancelled">Cancelled</option>
+
+}
+
+    alertDiv.innerHTML = message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+
+function printOrder() {
+
+    window.print();    alertContainer.appendChild(alertDiv);                                    <option value="cancelled" {% if order['status'] == 'cancelled' %}selected{% endif %}>Cancelled</option>
+
+}
+
+    setTimeout(function() { alertDiv.remove(); }, 5000);
+
+function refreshOrders() {
+
+    location.reload();}                                </select>                            <th>Actions</th>            </select>
+
+}
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    connectWebSocket();function updateOrderStatus(orderId, newStatus) {                            </td>
+
+    var rows = document.querySelectorAll('[id^="order-"]');
+
+    rows.forEach(function(row) {    fetch('/admin/api/orders/' + orderId + '/update-status', {
+
+        var select = row.querySelector('select[onchange*="updateOrderStatus"]');
+
+        if (select) {        method: 'POST',                            <td><small>{{ order['created_at'] }}</small></td>                        </tr>        </div>
+
+            updateRowStyling(row.id.replace('order-', ''), select.value);
+
+        }        headers: { 'Content-Type': 'application/json' },
+
+    });
+
+});        body: JSON.stringify({ status: newStatus })                            <td>
+
+</script>
+
+    })
+
+<style>
+
+.table-success { background-color: #d4edda !important; }    .then(function(response) { return response.json(); })                                <button class="btn btn-sm btn-info" onclick="viewOrderDetails({{ order['id'] }})" title="View Details">                    </thead>        <div class="col-md-3">
+
+.table-warning { background-color: #fff3cd !important; }
+
+.table-danger { background-color: #f8d7da !important; }    .then(function(data) {
+
+.table-info { background-color: #d1ecf1 !important; }
+
+        if (data.success) {                                    <i class="fas fa-eye"></i>
+
+@media (max-width: 768px) {
+
+    .table-responsive { font-size: 0.9rem; }            showAlert('Order #' + orderId + ' status updated', 'success');
+
+    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+
+    .form-select-sm { font-size: 0.8rem; }            updateRowStyling(orderId, newStatus);                                </button>                    <tbody>            <input type="date" class="form-control" id="dateFilter" placeholder="Filter by date">
+
+}
+
+        } else {
+
+@media print {
+
+    .btn, .modal-header, .modal-footer { display: none !important; }            showAlert('Failed to update status', 'danger');                            </td>
+
+}
+
+</style>        }
+
+{% endblock %}
+
+    })                        </tr>                        {% for order in orders %}        </div>
+
+    .catch(function(error) {
+
+        showAlert('Error: ' + error.message, 'danger');                        {% endfor %}
+
+    });
+
+}                    </tbody>                        <tr id="order-{{ order['id'] }}" class="order-row-{{ order['status'] }}">        <div class="col-md-3">
+
+
+
+function updatePaymentStatus(orderId, newStatus) {                </table>
+
+    fetch('/admin/api/orders/' + orderId + '/update-payment-status', {
+
+        method: 'POST',            </div>                            <td><strong>#{{ order['id'] }}</strong></td>            <input type="text" class="form-control" id="customerFilter" placeholder="Search customer...">
+
+        headers: { 'Content-Type': 'application/json' },
+
+        body: JSON.stringify({ payment_status: newStatus })        </div>
+
+    })
+
+    .then(function(response) { return response.json(); })    </div>                            <td>{{ order['customer'] }}</td>        </div>
+
+    .then(function(data) {
+
+        if (data.success) {</div>
+
+            showAlert('Payment status updated', 'success');
+
+        } else {                            <td><small class="text-muted">{{ order['items'] }}</small></td>        <div class="col-md-3">
+
+            showAlert('Failed to update payment status', 'danger');
+
+        }<!-- Order Details Modal -->
+
+    })
+
+    .catch(function(error) {<div class="modal fade" id="orderDetailsModal" tabindex="-1">                            <td><strong>₦{{ "%.2f"|format(order['total']) }}</strong></td>            <button class="btn btn-primary" onclick="applyFilters()">
+
+        showAlert('Error: ' + error.message, 'danger');
+
+    });    <div class="modal-dialog modal-lg">
+
+}
+
+        <div class="modal-content">                            <td>                <i class="fas fa-filter"></i> Apply Filters
+
+function updateRowStyling(orderId, status) {
+
+    var row = document.getElementById('order-' + orderId);            <div class="modal-header">
+
+    if (!row) return;
+
+    row.classList.remove('table-success', 'table-warning', 'table-danger', 'table-info');                <h5 class="modal-title">Order Details</h5>                                <select class="form-select form-select-sm payment-status-select"             </button>
+
+    if (status === 'completed' || status === 'delivered') {
+
+        row.classList.add('table-success');                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+    } else if (status === 'pending_payment') {
+
+        row.classList.add('table-warning');            </div>                                        onchange="updatePaymentStatus({{ order['id'] }}, this.value)">        </div>
+
+    } else if (status === 'cancelled') {
+
+        row.classList.add('table-danger');            <div class="modal-body" id="orderDetailsContent">
+
+    } else if (status === 'preparing' || status === 'almost_ready') {
+
+        row.classList.add('table-info');                <!-- Dynamic content will be inserted here -->                                    <option value="pending" {% if order['payment_status'] == 'pending' %}selected{% endif %}>Pending</option>    </div>
+
+    }
+
+}            </div>
+
+
+
+function viewOrderDetails(orderId) {            <div class="modal-footer">                                    <option value="paid" {% if order['payment_status'] == 'paid' %}selected{% endif %}>Paid</option></div>
+
+    fetch('/admin/api/orders/' + orderId)
+
+        .then(function(response) { return response.json(); })                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+        .then(function(order) {
+
+            displayOrderDetails(order);                <button type="button" class="btn btn-primary" onclick="printOrder()">                                    <option value="failed" {% if order['payment_status'] == 'failed' %}selected{% endif %}>Failed</option>
+
+        })
+
+        .catch(function(error) {                    <i class="fas fa-print"></i> Print Order
+
+            showAlert('Error loading order details', 'danger');
+
+        });                </button>                                    <option value="refunded" {% if order['payment_status'] == 'refunded' %}selected{% endif %}>Refunded</option><!-- Orders Table -->
+
+}
+
+            </div>
+
+function displayOrderDetails(order) {
+
+    var itemsHtml = '';        </div>                                </select><div class="stat-card">
+
+    if (order.items && order.items.length > 0) {
+
+        order.items.forEach(function(item) {    </div>
+
+            itemsHtml += '<li class="list-group-item">' +
+
+                '<strong>' + item.quantity + 'x ' + item.name + '</strong> - ₦' + parseFloat(item.unit_price).toFixed(2) +</div>                            </td>    <div class="table-responsive">
+
+                (item.special_instructions ? '<br><small class="text-muted">' + item.special_instructions + '</small>' : '') +
+
+                '</li>';{% endblock %}
+
+        });
+
+    }                            <td>        <table class="table table-hover" id="ordersTable">
+
+
+
+    var receiptHtml = '';{% block scripts %}
+
+    if (order.bank_transfer_receipt) {
+
+        receiptHtml = '<div class="mt-3"><h6>Payment Receipt</h6>' +<script>                                <select class="form-select form-select-sm order-status-select"             <thead class="table-light">
+
+            '<a href="' + order.bank_transfer_receipt + '" target="_blank" class="btn btn-sm btn-primary">View Receipt</a>' +
+
+            '<img src="' + order.bank_transfer_receipt + '" class="img-fluid mt-2" style="max-height: 300px;">' +// WebSocket connection for real-time updates
+
+            '</div>';
+
+    }var ws = null;                                        onchange="updateOrderStatus({{ order['id'] }}, this.value)">                <tr>
+
+
+
+    var content = '<div class="row">' +
+
+        '<div class="col-md-6">' +
+
+        '<h6>Order Information</h6>' +function connectWebSocket() {                                    <option value="pending_payment" {% if order['status'] == 'pending_payment' %}selected{% endif %}>Pending Payment</option>                    <th>Order ID</th>
+
+        '<p><strong>Order #:</strong> ' + (order.order_number || 'N/A') + '</p>' +
+
+        '<p><strong>Customer:</strong> ' + (order.customer_name || 'N/A') + '</p>' +    var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+
+        '<p><strong>Email:</strong> ' + (order.customer_email || 'N/A') + '</p>' +
+
+        '<p><strong>Phone:</strong> ' + (order.customer_phone || 'N/A') + '</p>' +    var wsUrl = protocol + '//' + window.location.host + '/ws/admin';                                    <option value="payment_confirmed" {% if order['status'] == 'payment_confirmed' %}selected{% endif %}>Payment Confirmed</option>                    <th>Customer</th>
+
+        '<p><strong>Status:</strong> ' + (order.status || 'N/A') + '</p>' +
+
+        '<p><strong>Payment:</strong> ' + (order.payment_status || 'N/A') + '</p>' +
+
+        '<p><strong>Payment Method:</strong> ' + (order.payment_method || 'N/A') + '</p>' +
+
+        (order.payment_reference ? '<p><strong>Reference:</strong> ' + order.payment_reference + '</p>' : '') +    ws = new WebSocket(wsUrl);                                    <option value="preparing" {% if order['status'] == 'preparing' %}selected{% endif %}>Preparing</option>                    <th>Items</th>
+
+        (order.special_instructions ? '<p><strong>Instructions:</strong> ' + order.special_instructions + '</p>' : '') +
+
+        receiptHtml +
+
+        '</div>' +
+
+        '<div class="col-md-6">' +    ws.onopen = function() {                                    <option value="almost_ready" {% if order['status'] == 'almost_ready' %}selected{% endif %}>Almost Ready</option>                    <th>Total</th>
+
+        '<h6>Order Items</h6>' +
+
+        '<ul class="list-group mb-3">' + itemsHtml + '</ul>' +        console.log('WebSocket connected');
+
+        '<div class="card bg-light"><div class="card-body">' +
+
+        '<p><strong>Subtotal:</strong> ₦' + (order.subtotal ? parseFloat(order.subtotal).toFixed(2) : '0.00') + '</p>' +    };                                    <option value="ready_for_pickup" {% if order['status'] == 'ready_for_pickup' %}selected{% endif %}>Ready for Pickup</option>                    <th>Status</th>
+
+        (order.tax && order.tax > 0 ? '<p><strong>Tax:</strong> ₦' + parseFloat(order.tax).toFixed(2) + '</p>' : '') +
+
+        (order.delivery_fee && order.delivery_fee > 0 ? '<p><strong>Delivery:</strong> ₦' + parseFloat(order.delivery_fee).toFixed(2) + '</p>' : '') +
+
+        '<h5><strong>Total: ₦' + (order.total ? parseFloat(order.total).toFixed(2) : '0.00') + '</strong></h5>' +
+
+        '</div></div>' +    ws.onmessage = function(event) {                                    <option value="delivered" {% if order['status'] == 'delivered' %}selected{% endif %}>Delivered</option>                    <th>Payment</th>
+
+        '</div></div>';
+
+            var data = JSON.parse(event.data);
+
+    document.getElementById('orderDetailsContent').innerHTML = content;
+
+    new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();        if (data.type === 'new_order' || data.type === 'order_update') {                                    <option value="completed" {% if order['status'] == 'completed' %}selected{% endif %}>Completed</option>                    <th>Created</th>
+
+}
+
+            refreshOrders();
+
+function printOrder() {
+
+    window.print();        }                                    <option value="cancelled" {% if order['status'] == 'cancelled' %}selected{% endif %}>Cancelled</option>                    <th>Actions</th>
+
+}
+
+    };
+
+function refreshOrders() {
+
+    location.reload();                                    </select>                </tr>
+
+}
+
+    ws.onclose = function() {
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    connectWebSocket();        console.log('WebSocket disconnected. Reconnecting in 5s...');                            </td>            </thead>
+
+    var rows = document.querySelectorAll('[id^="order-"]');
+
+    rows.forEach(function(row) {        setTimeout(connectWebSocket, 5000);
+
+        var select = row.querySelector('select[onchange*="updateOrderStatus"]');
+
+        if (select) {    };                            <td><small>{{ order['created_at'] }}</small></td>            <tbody>
+
+            updateRowStyling(row.id.replace('order-', ''), select.value);
+
+        }
+
+    });
+
+});    ws.onerror = function(error) {                            <td>                {% for order in orders %}
+
+</script>
+
+        console.error('WebSocket error:', error);
+
+<style>
+
+.table-success { background-color: #d4edda !important; }    };                                <button class="btn btn-sm btn-info" onclick="viewOrderDetails({{ order['id'] }})" title="View Details">                <tr id="order-{{ order['id'] }}">
+
+.table-warning { background-color: #fff3cd !important; }
+
+.table-danger { background-color: #f8d7da !important; }}
+
+.table-info { background-color: #d1ecf1 !important; }
+
                                     <i class="fas fa-eye"></i>                    <td>
 
-// Initialize WebSocket on page load
+@media (max-width: 768px) {
 
-document.addEventListener('DOMContentLoaded', function() {                                </button>                        <strong>#{{ order['id'] }}</strong>
+    .table-responsive { font-size: 0.9rem; }// Initialize WebSocket on page load
+
+    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+
+    .form-select-sm { font-size: 0.8rem; }document.addEventListener('DOMContentLoaded', function() {                                </button>                        <strong>#{{ order['id'] }}</strong>
+
+}
 
     connectWebSocket();
 
-    applyInitialRowStyling();                            </td>                    </td>
+@media print {
 
-});
+    .btn, .modal-header, .modal-footer { display: none !important; }    applyInitialRowStyling();                            </td>                    </td>
+
+}
+
+</style>});
+
+{% endblock %}
 
                         </tr>                    <td>
 

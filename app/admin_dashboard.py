@@ -420,6 +420,9 @@ async def get_order_details(
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        error_detail = f"{str(e)}\n{traceback.format_exc()}"
+        print(f"Error getting order details for order {order_id}: {error_detail}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @admin_router.post("/api/orders/{order_id}/update-status")

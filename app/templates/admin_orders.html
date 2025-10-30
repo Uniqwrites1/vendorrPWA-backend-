@@ -148,6 +148,12 @@
 
 {% block scripts %}
 <script>
+// Escape special characters in user input to prevent breaking template literals
+function escapeTemplateString(str) {
+    if (!str) return '';
+    return str.replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\\/g, '\\\\');
+}
+
 function updateOrderStatus(orderId, newStatus) {
     fetch(`/admin/api/orders/${orderId}/update-status`, {
         method: 'POST',
@@ -279,9 +285,9 @@ function viewOrderDetails(orderId) {
                         <p><strong>Status:</strong> ${statusBadge}</p>
                         <p><strong>Payment:</strong> ${paymentBadge}</p>
                         <p><strong>Payment Method:</strong> ${order.payment_method || 'N/A'}</p>
-                        ${order.payment_reference ? `<p><strong>Payment Reference:</strong> ${order.payment_reference}</p>` : ''}
+                        ${order.payment_reference ? `<p><strong>Payment Reference:</strong> ${escapeTemplateString(order.payment_reference)}</p>` : ''}
                         <p><strong>Order Time:</strong> ${order.created_at}</p>
-                        ${order.special_instructions ? `<p><strong>Special Instructions:</strong><br>${order.special_instructions}</p>` : ''}
+                        ${order.special_instructions ? `<p><strong>Special Instructions:</strong><br>${escapeTemplateString(order.special_instructions)}</p>` : ''}
                         ${order.bank_transfer_receipt ? `
                             <div class="mt-3">
                                 <h6>Payment Receipt</h6>
@@ -299,8 +305,8 @@ function viewOrderDetails(orderId) {
                         <ul class="list-unstyled">
                             ${order.items.map(item => `
                                 <li class="mb-2">
-                                    ${item.quantity}x ${item.name} - ₦${item.unit_price.toFixed(2)}
-                                    ${item.special_instructions ? `<br><small class="text-muted">Note: ${item.special_instructions}</small>` : ''}
+                                    ${item.quantity}x ${escapeTemplateString(item.name)} - ₦${item.unit_price.toFixed(2)}
+                                    ${item.special_instructions ? `<br><small class="text-muted">Note: ${escapeTemplateString(item.special_instructions)}</small>` : ''}
                                 </li>
                             `).join('')}
                         </ul>

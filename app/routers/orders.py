@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from datetime import datetime
 import json
+import os
+import uuid
+from pathlib import Path
 
 from ..core.database import get_db
 from ..models.database_models import Order, OrderItem, User, MenuItem
@@ -10,6 +13,62 @@ from ..schemas import OrderCreate, OrderResponse, OrderUpdate
 from ..auth.auth import get_current_active_user
 
 router = APIRouter()
+
+@router.post("/upload-receipt")
+async def upload_receipt(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Upload a payment receipt image"""
+    try:
+        # Validate file type
+        allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/gif", "application/pdf"]
+        if file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid file type. Only images (JPEG, PNG, GIF) and PDF are allowed"
+            )
+
+        # Validate file size (10MB max)
+        file_content = await file.read()
+        if len(file_content) > 10 * 1024 * 1024:  # 10MB
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File size exceeds 10MB limit"
+            )
+
+        # Generate unique filename
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"receipt_{uuid.uuid4().hex}{file_extension}"
+
+        # Ensure uploads directory exists
+        uploads_dir = Path("uploads/receipts")
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save file
+        file_path = uploads_dir / unique_filename
+        with open(file_path, "wb") as f:
+            f.write(file_content)
+
+        # Return the public URL
+        file_url = f"/uploads/receipts/{unique_filename}"
+
+        return {
+            "success": True,
+            "file_url": file_url,
+            "filename": unique_filename
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"File upload error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload file: {str(e)}"
+        )
 
 @router.post("/", response_model=OrderResponse)
 async def create_order(
@@ -67,6 +126,9 @@ async def create_order(
             customer_phone=order_data.customer_phone or current_user.phone,
             customer_email=order_data.customer_email or current_user.email,
             notes=order_data.special_instructions,  # Map special_instructions to notes field
+            payment_method=order_data.payment_method if hasattr(order_data, 'payment_method') else "bank_transfer",
+            payment_reference=order_data.payment_reference if hasattr(order_data, 'payment_reference') else None,
+            bank_transfer_receipt=order_data.bank_transfer_receipt if hasattr(order_data, 'bank_transfer_receipt') else None,
             subtotal=subtotal,
             tax_amount=tax_amount,
             total_amount=total_amount

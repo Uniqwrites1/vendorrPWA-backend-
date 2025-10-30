@@ -190,6 +190,9 @@ class OrderBase(BaseSchema):
 
 class OrderCreate(OrderBase):
     items: List[OrderItemCreate] = Field(..., min_items=1)
+    payment_method: Optional[str] = "bank_transfer"
+    payment_reference: Optional[str] = None
+    bank_transfer_receipt: Optional[str] = None
 
 class OrderUpdate(BaseSchema):
     status: Optional[OrderStatus] = None

@@ -1,4 +1,4 @@
-﻿{% extends "admin_base.html" %}TEST
+﻿{% extends "admin_base.html" %}
 
 {% block title %}Order Management{% endblock %}
 
@@ -111,15 +111,47 @@ function updatePaymentStatus(orderId, status) {
 
 function viewOrderDetails(orderId) {
     fetch('/admin/api/orders/' + orderId)
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Failed to load order');
+        return r.json();
+    })
     .then(function(o) {
-        var html = '<h6>Order #' + o.order_number + '</h6>';
-        html += '<p>Customer: ' + o.customer_name + '</p>';
-        html += '<p>Total: ₦' + parseFloat(o.total).toFixed(2) + '</p>';
+        var html = '<div class="row"><div class="col-md-6">';
+        html += '<h6>Order Information</h6>';
+        html += '<p><strong>Order #:</strong> ' + (o.order_number || 'N/A') + '</p>';
+        html += '<p><strong>Customer:</strong> ' + (o.customer_name || 'N/A') + '</p>';
+        html += '<p><strong>Email:</strong> ' + (o.customer_email || 'N/A') + '</p>';
+        html += '<p><strong>Phone:</strong> ' + (o.customer_phone || 'N/A') + '</p>';
+        html += '<p><strong>Status:</strong> ' + (o.status || 'N/A') + '</p>';
+        html += '<p><strong>Payment:</strong> ' + (o.payment_status || 'N/A') + '</p>';
+        if (o.payment_reference) html += '<p><strong>Reference:</strong> ' + o.payment_reference + '</p>';
+        if (o.bank_transfer_receipt) {
+            html += '<div class="mt-2"><strong>Payment Receipt:</strong><br>';
+            html += '<a href="' + o.bank_transfer_receipt + '" target="_blank" class="btn btn-sm btn-primary">View Receipt</a></div>';
+        }
+        html += '</div><div class="col-md-6">';
+        html += '<h6>Order Items</h6><ul class="list-group">';
+        if (o.items && o.items.length > 0) {
+            for (var i = 0; i < o.items.length; i++) {
+                var item = o.items[i];
+                html += '<li class="list-group-item">';
+                html += '<strong>' + item.quantity + 'x ' + item.name + '</strong> - ₦' + parseFloat(item.unit_price).toFixed(2);
+                if (item.special_instructions) html += '<br><small>' + item.special_instructions + '</small>';
+                html += '</li>';
+            }
+        }
+        html += '</ul>';
+        html += '<div class="mt-3"><p><strong>Subtotal:</strong> ₦' + parseFloat(o.subtotal || 0).toFixed(2) + '</p>';
+        if (o.tax > 0) html += '<p><strong>Tax:</strong> ₦' + parseFloat(o.tax).toFixed(2) + '</p>';
+        html += '<h5><strong>Total: ₦' + parseFloat(o.total || 0).toFixed(2) + '</strong></h5>';
+        html += '</div></div></div>';
         document.getElementById('orderDetailsContent').innerHTML = html;
         new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
     })
-    .catch(function() { showAlert('Error loading details', 'danger'); });
+    .catch(function(e) {
+        console.error('Order details error:', e);
+        showAlert('Error loading details', 'danger');
+    });
 }
 </script>
 {% endblock %}

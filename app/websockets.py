@@ -46,24 +46,39 @@ class ConnectionManager:
 
     async def send_personal_message(self, message: dict, user_id: int):
         """Send a message to a specific user (all their connections)"""
-        if user_id in self.active_connections:
-            message_json = json.dumps({
-                **message,
-                "timestamp": datetime.utcnow().isoformat()
-            })
+        if user_id not in self.active_connections:
+            logger.warning(f"User {user_id} has no active WebSocket connections")
+            return
 
-            # Send to all connections for this user
-            disconnected = []
-            for connection in self.active_connections[user_id]:
-                try:
-                    await connection.send_text(message_json)
-                except Exception as e:
-                    logger.error(f"Error sending message to user {user_id}: {e}")
-                    disconnected.append(connection)
+        connections = self.active_connections[user_id]
+        if not isinstance(connections, list):
+            logger.error(f"Invalid connection data for user {user_id}: {type(connections)}")
+            del self.active_connections[user_id]
+            return
 
-            # Clean up disconnected connections
-            for conn in disconnected:
-                self.disconnect(conn, user_id)
+        message_json = json.dumps({
+            **message,
+            "timestamp": datetime.utcnow().isoformat()
+        })
+
+        # Send to all connections for this user
+        disconnected = []
+        for connection in connections:
+            # Validate connection is a WebSocket
+            if not hasattr(connection, 'send_text'):
+                logger.error(f"Invalid connection object for user {user_id}: {type(connection)}")
+                disconnected.append(connection)
+                continue
+
+            try:
+                await connection.send_text(message_json)
+            except Exception as e:
+                logger.error(f"Error sending message to user {user_id}: {e}")
+                disconnected.append(connection)
+
+        # Clean up disconnected connections
+        for conn in disconnected:
+            self.disconnect(conn, user_id)
 
     async def send_to_admins(self, message: dict):
         """Send a message to all admin connections"""

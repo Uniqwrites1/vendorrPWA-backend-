@@ -32,10 +32,10 @@ class Settings:
     restaurant_address: str = "123 Main St, City, State 12345"
 
     # Bank details for transfers
-    bank_name: str = "Example Bank"
-    bank_account_number: str = "1234567890"
-    bank_routing_number: str = "123456789"
-    bank_account_name: str = "Vendorr Restaurant LLC"
+    bank_name: str = "Kuda MFB"
+    bank_account_number: str = "3002871052"
+    bank_routing_number: str = ""
+    bank_account_name: str = "Uniqwrtes Edtech Services-vendorr"
 
     # Environment
     debug: bool = os.getenv("DEBUG", "True").lower() == "true"

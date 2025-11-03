@@ -108,10 +108,9 @@ async def create_order(
                 "notes": item_data.special_instructions
             })
 
-        # Calculate tax and total
-        tax_rate = 0.08  # 8% tax
-        tax_amount = subtotal * tax_rate
-        total_amount = subtotal + tax_amount
+        # Calculate total (no tax)
+        tax_amount = 0
+        total_amount = subtotal
 
         # Generate order number
         order_count = db.query(Order).count() + 1

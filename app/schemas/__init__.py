@@ -223,8 +223,11 @@ class OrderResponse(BaseSchema):
     updated_at: Optional[datetime] = None
 
     # Optional relationships - will be loaded if needed
-    items: Optional[List[OrderItemResponse]] = []
+    items: Optional[List[OrderItemResponse]] = Field(default=[], alias="order_items")
     customer: Optional[UserResponse] = None
+
+    class Config:
+        populate_by_name = True  # Allow both "items" and "order_items"
 
 # Payment schemas
 class PaymentBase(BaseSchema):

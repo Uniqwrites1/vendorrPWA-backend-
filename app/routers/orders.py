@@ -187,6 +187,7 @@ async def get_my_orders(
     """Get current user's orders"""
     orders = (
         db.query(Order)
+        .options(joinedload(Order.order_items).joinedload(OrderItem.menu_item))
         .filter(Order.customer_id == current_user.id)
         .order_by(Order.created_at.desc())
         .all()
@@ -202,6 +203,7 @@ async def get_order(
     """Get a specific order"""
     order = (
         db.query(Order)
+        .options(joinedload(Order.order_items).joinedload(OrderItem.menu_item))
         .filter(Order.id == order_id)
         .filter(Order.customer_id == current_user.id)
         .first()

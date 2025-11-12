@@ -119,34 +119,54 @@ app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 
 # CORS middleware for frontend communication
 from .core.config import settings
+import re
 
-# Custom CORS origin checker for Vercel preview URLs
-def get_allowed_origins():
-    origins = settings.allowed_origins.copy()
-    return origins
+# Custom CORS origin validator
+def check_cors_origin(origin: str, allowed_origins: list) -> bool:
+    """Check if origin is allowed, including Vercel preview URLs"""
+    # Check exact matches
+    if origin in allowed_origins:
+        return True
+    # Allow all Vercel preview URLs (e.g., https://app-name-xxx.vercel.app)
+    if re.match(r'^https://[a-z0-9-]+\.vercel\.app$', origin):
+        return True
+    return False
 
-# Add CORS before other middleware with custom origin validator
-from starlette.middleware.cors import CORSMiddleware as StarletteORSMiddleware
+# Get all allowed origins including Vercel pattern
+allowed_origins_list = settings.allowed_origins.copy()
 
-class CustomCORSMiddleware(StarletteORSMiddleware):
-    def is_allowed_origin(self, origin: str) -> bool:
-        # Check exact matches first
-        if origin in self.allow_origins:
-            return True
-        # Allow all Vercel preview URLs
-        if origin.endswith(".vercel.app") and origin.startswith("https://"):
-            return True
-        return False
+# Add CORS middleware with origin validation
+@app.middleware("http")
+async def cors_middleware(request: Request, call_next):
+    origin = request.headers.get("origin")
 
-app.add_middleware(
-    CustomCORSMiddleware,
-    allow_origins=get_allowed_origins(),
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=3600,
-)
+    # Handle preflight requests
+    if request.method == "OPTIONS":
+        if origin and check_cors_origin(origin, allowed_origins_list):
+            return JSONResponse(
+                content={},
+                headers={
+                    "Access-Control-Allow-Origin": origin,
+                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Max-Age": "3600",
+                },
+            )
+        return JSONResponse(content={}, status_code=403)
+
+    # Process request
+    response = await call_next(request)
+
+    # Add CORS headers if origin is allowed
+    if origin and check_cors_origin(origin, allowed_origins_list):
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "*"
+
+    return response
 
 # Request timing middleware
 @app.middleware("http")
@@ -156,22 +176,6 @@ async def add_process_time_header(request: Request, call_next):
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
     return response
-
-# OPTIONS handler for preflight requests
-@app.options("/{full_path:path}")
-async def options_handler(request: Request, full_path: str):
-    """Handle OPTIONS preflight requests"""
-    return JSONResponse(
-        content={"message": "OK"},
-        status_code=200,
-        headers={
-            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-            "Access-Control-Allow-Headers": "*",
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Max-Age": "3600",
-        }
-    )
 
 # Global exception handler
 @app.exception_handler(HTTPException)

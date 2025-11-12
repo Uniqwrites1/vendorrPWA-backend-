@@ -120,10 +120,27 @@ app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 # CORS middleware for frontend communication
 from .core.config import settings
 
-# Add CORS before other middleware
+# Custom CORS origin checker for Vercel preview URLs
+def get_allowed_origins():
+    origins = settings.allowed_origins.copy()
+    return origins
+
+# Add CORS before other middleware with custom origin validator
+from starlette.middleware.cors import CORSMiddleware as StarletteORSMiddleware
+
+class CustomCORSMiddleware(StarletteORSMiddleware):
+    def is_allowed_origin(self, origin: str) -> bool:
+        # Check exact matches first
+        if origin in self.allow_origins:
+            return True
+        # Allow all Vercel preview URLs
+        if origin.endswith(".vercel.app") and origin.startswith("https://"):
+            return True
+        return False
+
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    CustomCORSMiddleware,
+    allow_origins=get_allowed_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],

@@ -127,8 +127,9 @@ def check_cors_origin(origin: str, allowed_origins: list) -> bool:
     # Check exact matches
     if origin in allowed_origins:
         return True
-    # Allow all Vercel preview URLs (e.g., https://app-name-xxx.vercel.app)
-    if re.match(r'^https://[a-z0-9-]+\.vercel\.app$', origin):
+    # Allow all Vercel preview URLs (includes hyphens, underscores, numbers)
+    # Pattern: https://anything.vercel.app
+    if origin and origin.startswith("https://") and origin.endswith(".vercel.app"):
         return True
     return False
 

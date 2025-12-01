@@ -68,7 +68,7 @@ class UserResponse(UserBase):
     is_active: bool
     is_verified: bool
     profile_image: Optional[str] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
 
 class UserLogin(BaseSchema):
@@ -112,7 +112,7 @@ class MenuCategoryUpdate(BaseSchema):
 
 class MenuCategoryResponse(MenuCategoryBase):
     id: int
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
 # Menu Item schemas
@@ -158,7 +158,7 @@ class MenuItemResponse(MenuItemBase):
     category: MenuCategoryResponse
     popularity_score: float = Field(0.0, description="Popularity score (default 0.0)")
     total_orders: int = Field(0, description="Total orders count (default 0)")
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
 # Order Item schemas
@@ -176,7 +176,7 @@ class OrderItemResponse(OrderItemBase):
     unit_price: float
     total_price: float
     menu_item: MenuItemResponse
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
 # Order schemas
 class OrderBase(BaseSchema):
@@ -219,7 +219,7 @@ class OrderResponse(BaseSchema):
     payment_method: Optional[str] = None
     payment_reference: Optional[str] = None
     bank_transfer_receipt: Optional[str] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
     # Optional relationships - will be loaded if needed
@@ -261,7 +261,7 @@ class PaymentResponse(PaymentBase):
     confirmed_at: Optional[datetime] = None
     rejection_reason: Optional[str] = None
     rejected_at: Optional[datetime] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
 # Notification schemas
@@ -282,7 +282,7 @@ class NotificationResponse(NotificationBase):
     is_read: bool
     is_push_sent: bool
     push_sent_at: Optional[datetime] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
     read_at: Optional[datetime] = None
 
 # Review schemas
@@ -304,7 +304,7 @@ class ReviewResponse(ReviewBase):
     is_approved: bool
     is_featured: bool
     customer: UserResponse
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
 # Staff Account schemas
@@ -324,7 +324,7 @@ class StaffAccountResponse(StaffAccountBase):
     is_on_duty: bool
     last_activity: Optional[datetime] = None
     user: UserResponse
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
 # API Response wrappers

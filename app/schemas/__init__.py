@@ -172,7 +172,7 @@ class OrderItemCreate(OrderItemBase):
     pass
 
 class OrderItemResponse(OrderItemBase):
-    id: str
+    id: int
     unit_price: float
     total_price: float
     menu_item: MenuItemResponse

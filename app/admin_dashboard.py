@@ -585,6 +585,8 @@ async def toggle_menu_availability(
 
         # Toggle availability
         menu_item.is_available = not menu_item.is_available
+        # Update status to match availability
+        menu_item.status = "available" if menu_item.is_available else "unavailable"
         menu_item.updated_at = datetime.utcnow()
 
         db.commit()
